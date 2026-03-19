@@ -31,6 +31,13 @@ export interface DdayItem {
   targetDate: string // "2026-07-15"
 }
 
+// === 급식 ===
+export interface MealData {
+  date: string       // "2026-03-19"
+  menu: string[]     // ["현미밥", "미역국", ...]
+  calories: string   // "780 kcal"
+}
+
 // === 위젯 레이아웃 ===
 export type WidgetId =
   | 'clock'
@@ -116,6 +123,7 @@ export interface StoreSchema {
   timetable: TimetableEntry[]
   todos: TodoItem[]
   ddays: DdayItem[]
+  meal: MealData
   memo: string
   widgetLayouts: WidgetLayout[]
   phoneDirectory: PhoneEntry[]
