@@ -98,6 +98,18 @@ export type IpcChannel =
   | 'load-store'
   | 'save-store'
 
+// === 스마트 도구 ===
+export interface PhoneEntry {
+  id: string
+  name: string
+  number: string
+}
+
+export interface SubmissionRecord {
+  title: string
+  checkedNumbers: number[]
+}
+
 // === electron-store 데이터 ===
 export interface StoreSchema {
   settings: AppSettings
@@ -106,4 +118,7 @@ export interface StoreSchema {
   ddays: DdayItem[]
   memo: string
   widgetLayouts: WidgetLayout[]
+  phoneDirectory: PhoneEntry[]
+  submissionRecords: SubmissionRecord[]
+  studentCount: number
 }
