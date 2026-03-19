@@ -106,8 +106,12 @@ interface WttrDay {
 }
 
 interface WttrJson {
-  current_condition: WttrCurrent[]
-  weather: WttrDay[]
+  current_condition?: WttrCurrent[]
+  weather?: WttrDay[]
+  data?: {
+    current_condition: WttrCurrent[]
+    weather: WttrDay[]
+  }
 }
 
 interface WeatherResult {
@@ -311,12 +315,16 @@ function registerIpcHandlers(): void {
         const text = await fetchUrl(url)
         const json = JSON.parse(text) as WttrJson
 
-        if (!json.current_condition || json.current_condition.length === 0) {
+        // wttr.in은 data 키 안에 감쌀 수도 있음
+        const conditions = json.current_condition ?? json.data?.current_condition
+        const weatherDays = json.weather ?? json.data?.weather
+
+        if (!conditions || conditions.length === 0) {
           return null
         }
 
-        const current = json.current_condition[0]
-        const dayWeather = json.weather?.[0]
+        const current = conditions[0]
+        const dayWeather = weatherDays?.[0]
         const desc = current.weatherDesc?.[0]?.value ?? 'Clear'
         const mapped = getWeatherKorean(desc)
 
