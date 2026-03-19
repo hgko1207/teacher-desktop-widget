@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { CalendarDays, Utensils, Plus } from 'lucide-react'
+import { CalendarDays, Utensils, ChevronRight } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { THEMES } from '../../config/themes'
 import { DdayEditModal } from '../modals/DdayEditModal'
@@ -27,7 +27,7 @@ function ddayColor(diff: number): string {
   if (diff <= 0) return '#ef4444'
   if (diff <= 7) return '#ef4444'
   if (diff <= 30) return '#f59e0b'
-  return '#1a1a2e'
+  return '#6366f1'
 }
 
 export function LunchDdayWidget(): ReactNode {
@@ -41,123 +41,132 @@ export function LunchDdayWidget(): ReactNode {
 
   const loadData = async (): Promise<void> => {
     const storedDdays = await window.api.loadStore('ddays')
-    if (storedDdays && Array.isArray(storedDdays)) {
-      setDdays(storedDdays as DdayItem[])
-    }
+    if (storedDdays && Array.isArray(storedDdays)) setDdays(storedDdays as DdayItem[])
+
     const storedMeal = await window.api.loadStore('meal')
     if (storedMeal && typeof storedMeal === 'object' && 'date' in (storedMeal as MealData)) {
       const m = storedMeal as MealData
-      if (m.date === todayString() && m.menu.length > 0) {
-        setMeal(m)
-      } else {
-        setMeal(null)
-      }
+      if (m.date === todayString() && m.menu.length > 0) setMeal(m)
+      else setMeal(null)
     }
   }
 
   useEffect(() => { loadData() }, [])
 
-  // 모달 닫힐 때 약간의 딜레이 후 리로드 (저장 완료 대기)
-  const handleDdayClose = (): void => {
-    setDdayModalOpen(false)
-    setTimeout(() => { loadData() }, 100)
-  }
-  const handleMealClose = (): void => {
-    setMealModalOpen(false)
-    setTimeout(() => { loadData() }, 100)
-  }
+  const handleDdayClose = (): void => { setDdayModalOpen(false); setTimeout(loadData, 150) }
+  const handleMealClose = (): void => { setMealModalOpen(false); setTimeout(loadData, 150) }
 
   const mainDday = ddays[0]
-  const diff = mainDday ? calcD(mainDday.targetDate) : null
+  const mainDiff = mainDday ? calcD(mainDday.targetDate) : null
 
   return (
     <>
       <div className="h-full flex flex-col gap-3">
-        {/* D-Day - 컴팩트하게 */}
+
+        {/* ===== D-Day 카드 ===== */}
         <div
-          className="p-4 flex items-center justify-between shrink-0"
+          className="p-4 shrink-0"
           style={{
-            background: 'linear-gradient(135deg, #ffffff, #f9fafb)',
+            background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
             borderRadius: '20px',
-            border: '1px solid rgba(255,255,255,0.6)',
+            border: '1px solid rgba(0,0,0,0.04)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            cursor: 'pointer',
-            minHeight: '70px'
+            cursor: 'pointer'
           }}
           onClick={() => setDdayModalOpen(true)}
         >
-          <div className="flex items-center gap-2">
-            <CalendarDays size={16} style={{ color: theme.primary }} />
-            <span className="text-xs font-semibold" style={{ color: '#888' }}>
-              {mainDday ? mainDday.title : 'D-Day 추가'}
-            </span>
+          {/* 메인 D-Day */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: mainDday ? theme.bg : '#f3f4f6' }}>
+                <CalendarDays size={14} style={{ color: mainDday ? theme.primary : '#bbb' }} />
+              </div>
+              <div>
+                <div className="text-[10px] font-medium" style={{ color: '#aaa' }}>D-DAY</div>
+                <div className="text-sm font-bold" style={{ color: '#333' }}>
+                  {mainDday ? mainDday.title : 'D-Day 추가하기'}
+                </div>
+              </div>
+            </div>
+            {mainDday && mainDiff !== null ? (
+              <span className="text-2xl font-black tabular-nums" style={{ color: ddayColor(mainDiff) }}>
+                {ddayLabel(mainDiff)}
+              </span>
+            ) : (
+              <ChevronRight size={16} style={{ color: '#ccc' }} />
+            )}
           </div>
-          {mainDday && diff !== null ? (
-            <span className="text-2xl font-extrabold tabular-nums" style={{ color: ddayColor(diff) }}>
-              {ddayLabel(diff)}
-            </span>
-          ) : (
-            <Plus size={18} style={{ color: '#ccc' }} />
+
+          {/* 서브 D-Day */}
+          {ddays.length > 1 && (
+            <div className="mt-2 pt-2 flex flex-col gap-1" style={{ borderTop: '1px solid #f0f0f0' }}>
+              {ddays.slice(1, 3).map((item) => {
+                const d = calcD(item.targetDate)
+                return (
+                  <div key={item.id} className="flex items-center justify-between px-1">
+                    <span className="text-[11px]" style={{ color: '#999' }}>{item.title}</span>
+                    <span className="text-[11px] font-bold tabular-nums" style={{ color: ddayColor(d) }}>{ddayLabel(d)}</span>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
 
-        {/* 추가 D-Day 목록 (2~3개) */}
-        {ddays.length > 1 && (
-          <div className="px-2 space-y-1 shrink-0">
-            {ddays.slice(1, 4).map((item) => {
-              const d = calcD(item.targetDate)
-              return (
-                <div key={item.id} className="flex items-center justify-between">
-                  <span className="text-xs" style={{ color: '#999' }}>{item.title}</span>
-                  <span className="text-xs font-bold tabular-nums" style={{ color: ddayColor(d) }}>
-                    {ddayLabel(d)}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* 급식 - 메인 영역 */}
+        {/* ===== 급식 카드 ===== */}
         <div
-          className="flex-1 p-4 flex flex-col relative overflow-hidden min-h-0"
+          className="flex-1 p-5 flex flex-col relative overflow-hidden min-h-0"
           style={{
-            background: theme.bg,
+            background: `linear-gradient(145deg, ${theme.bg}, #ffffff)`,
             borderRadius: '20px',
             border: `1px solid ${theme.border}`,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             cursor: 'pointer'
           }}
           onClick={() => setMealModalOpen(true)}
         >
-          <div className="flex items-center justify-between mb-2 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <Utensils size={14} style={{ color: theme.primary }} />
-              <span className="text-xs font-bold" style={{ color: theme.primary }}>오늘의 급식</span>
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.8)' }}>
+                <Utensils size={14} style={{ color: theme.primary }} />
+              </div>
+              <span className="text-sm font-bold" style={{ color: theme.primary }}>오늘의 급식</span>
             </div>
             {meal?.calories && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.7)', color: '#888' }}>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.8)', color: theme.primary }}>
                 {meal.calories}
               </span>
             )}
           </div>
 
+          {/* 메뉴 목록 */}
           {meal && meal.menu.length > 0 ? (
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto space-y-1.5">
               {meal.menu.map((item, i) => (
-                <div key={i} className="text-xs py-0.5" style={{ color: '#444' }}>• {item}</div>
+                <div key={i} className="flex items-center gap-2 py-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: theme.accent }} />
+                  <span className="text-sm font-medium" style={{ color: '#333' }}>{item}</span>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <span className="text-xs" style={{ color: '#aaa' }}>클릭하여 급식 메뉴를 입력하세요</span>
+            <div className="flex-1 flex flex-col items-center justify-center gap-2">
+              <Utensils size={28} style={{ color: theme.border }} />
+              <span className="text-sm font-medium" style={{ color: '#bbb' }}>
+                클릭하여 급식을 입력하세요
+              </span>
             </div>
           )}
 
-          <Utensils size={70} style={{
-            position: 'absolute', bottom: '-8px', right: '-8px',
-            opacity: 0.04, color: theme.primary, pointerEvents: 'none'
+          {/* 워터마크 */}
+          <Utensils size={90} style={{
+            position: 'absolute', bottom: '-12px', right: '-12px',
+            opacity: 0.04, color: theme.primary, pointerEvents: 'none',
+            transform: 'rotate(-15deg)'
           }} />
         </div>
       </div>
