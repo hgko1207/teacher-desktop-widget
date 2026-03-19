@@ -36,6 +36,56 @@ export interface MealData {
   date: string       // "2026-03-19"
   menu: string[]     // ["현미밥", "미역국", ...]
   calories: string   // "780 kcal"
+  source: 'auto' | 'manual'  // API 자동 vs 수동 입력
+}
+
+// === 날씨 ===
+export interface WeatherData {
+  temp: number          // celsius
+  condition: string     // '맑음', '흐림', '비', '눈' etc
+  tempMin: number
+  tempMax: number
+  humidity: number
+  icon: string          // emoji like ☀️ ☁️ 🌧️ ❄️
+  fetchedAt: number     // timestamp for cache
+}
+
+// === NEIS API 응답 타입 ===
+export interface NeisApiRow {
+  DDISH_NM: string
+  CAL_INFO: string
+  MLSV_YMD: string
+}
+
+export interface NeisApiHead {
+  list_total_count?: number
+  RESULT?: { CODE: string; MESSAGE: string }
+}
+
+export interface NeisApiResponse {
+  mealServiceDietInfo?: [
+    { head: NeisApiHead[] },
+    { row: NeisApiRow[] }
+  ]
+  RESULT?: { CODE: string; MESSAGE: string }
+}
+
+// === wttr.in 응답 타입 ===
+export interface WttrCurrentCondition {
+  temp_C: string
+  humidity: string
+  weatherDesc: { value: string }[]
+  weatherCode: string
+}
+
+export interface WttrWeatherDay {
+  mintempC: string
+  maxtempC: string
+}
+
+export interface WttrResponse {
+  current_condition: WttrCurrentCondition[]
+  weather: WttrWeatherDay[]
 }
 
 // === 위젯 레이아웃 ===
@@ -141,4 +191,5 @@ export interface StoreSchema {
   phoneDirectory: PhoneEntry[]
   submissionRecords: SubmissionRecord[]
   studentCount: number
+  weatherCache: WeatherData | null
 }

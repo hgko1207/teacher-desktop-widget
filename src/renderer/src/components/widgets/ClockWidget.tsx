@@ -1,10 +1,63 @@
-import { type ReactNode } from 'react'
-import { Calendar, Sun, Wind } from 'lucide-react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { Calendar, Wind } from 'lucide-react'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
+import { useSettingsStore } from '../../stores/settingsStore'
+import type { WeatherData } from '../../types'
+
+const WEATHER_CACHE_DURATION = 30 * 60 * 1000 // 30분
 
 export function ClockWidget(): ReactNode {
   const { hours, minutes, seconds, dateString, dayName } = useCurrentTime()
+  const region = useSettingsStore((s) => s.settings.region)
   const pad = (n: number): string => String(n).padStart(2, '0')
+
+  const [weather, setWeather] = useState<WeatherData | null>(null)
+  const [weatherError, setWeatherError] = useState(false)
+
+  const fetchWeather = useCallback(async (): Promise<void> => {
+    try {
+      // 캐시 확인
+      const cached = await window.api.loadStore('weatherCache')
+      if (cached && typeof cached === 'object' && 'fetchedAt' in (cached as WeatherData)) {
+        const w = cached as WeatherData
+        if (Date.now() - w.fetchedAt < WEATHER_CACHE_DURATION) {
+          setWeather(w)
+          setWeatherError(false)
+          return
+        }
+      }
+
+      // 새로 fetch
+      const result = await window.api.fetchWeather(region)
+      if (result) {
+        const weatherData: WeatherData = {
+          temp: result.temp,
+          condition: result.condition,
+          tempMin: result.tempMin,
+          tempMax: result.tempMax,
+          humidity: result.humidity,
+          icon: result.icon,
+          fetchedAt: result.fetchedAt
+        }
+        setWeather(weatherData)
+        setWeatherError(false)
+        await window.api.saveStore('weatherCache', weatherData)
+      } else {
+        setWeatherError(true)
+      }
+    } catch {
+      setWeatherError(true)
+    }
+  }, [region])
+
+  useEffect(() => {
+    fetchWeather()
+    // 30분마다 갱신
+    const interval = setInterval(() => {
+      fetchWeather()
+    }, WEATHER_CACHE_DURATION)
+    return (): void => clearInterval(interval)
+  }, [fetchWeather])
 
   return (
     <div
@@ -52,22 +105,32 @@ export function ClockWidget(): ReactNode {
             border: '1px solid rgba(0,0,0,0.04)'
           }}
         >
-          <Sun size={14} style={{ color: '#f59e0b' }} />
-          맑음, 12°C
+          {weather ? (
+            <>
+              <span style={{ fontSize: '14px' }}>{weather.icon}</span>
+              {weather.condition}, {weather.temp}°C
+            </>
+          ) : weatherError ? (
+            <span style={{ color: '#aaa' }}>날씨 정보 없음</span>
+          ) : (
+            <span style={{ color: '#aaa' }}>로딩중...</span>
+          )}
         </div>
 
-        {/* 미세먼지 뱃지 */}
-        <div
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
-          style={{
-            background: '#f0fdf4',
-            color: '#16a34a',
-            border: '1px solid #bbf7d0'
-          }}
-        >
-          <Wind size={14} />
-          미세먼지 좋음
-        </div>
+        {/* 습도 뱃지 */}
+        {weather && (
+          <div
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
+            style={{
+              background: '#f0fdf4',
+              color: '#16a34a',
+              border: '1px solid #bbf7d0'
+            }}
+          >
+            <Wind size={14} />
+            습도 {weather.humidity}%
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,3 +1,19 @@
+interface MealResult {
+  menu: string[]
+  calories: string
+  date: string
+}
+
+interface WeatherResult {
+  temp: number
+  condition: string
+  tempMin: number
+  tempMax: number
+  humidity: number
+  icon: string
+  fetchedAt: number
+}
+
 interface WidgetApi {
   toggleAlwaysOnTop: () => Promise<boolean>
   getAlwaysOnTop: () => Promise<boolean>
@@ -8,6 +24,8 @@ interface WidgetApi {
   maximizeWindow: () => Promise<boolean>
   loadStore: (key: string) => Promise<unknown>
   saveStore: (key: string, value: unknown) => Promise<void>
+  fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string) => Promise<MealResult | null>
+  fetchWeather: (region: string) => Promise<WeatherResult | null>
 }
 
 declare global {

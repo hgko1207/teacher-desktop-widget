@@ -1,6 +1,124 @@
-import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net } from 'electron'
 import { join } from 'path'
 import { initStore, loadStore, saveStore } from './store'
+
+// === 교육청 코드 매핑 ===
+const REGION_TO_EDU_CODE: Record<string, string> = {
+  '서울': 'B10', '부산': 'C10', '대구': 'D10', '인천': 'E10',
+  '광주': 'F10', '대전': 'G10', '울산': 'H10', '세종': 'I10',
+  '경기': 'J10', '강원': 'K10', '충북': 'M10', '충남': 'N10',
+  '전북': 'P10', '전남': 'Q10', '경북': 'R10', '경남': 'S10', '제주': 'T10'
+}
+
+// === 지역명 → wttr.in 도시명 매핑 ===
+const REGION_TO_CITY: Record<string, string> = {
+  '서울': 'Seoul', '부산': 'Busan', '대구': 'Daegu', '인천': 'Incheon',
+  '광주': 'Gwangju', '대전': 'Daejeon', '울산': 'Ulsan', '세종': 'Sejong',
+  '경기': 'Suwon', '강원': 'Chuncheon', '충북': 'Cheongju', '충남': 'Daejeon',
+  '전북': 'Jeonju', '전남': 'Mokpo', '경북': 'Andong', '경남': 'Changwon', '제주': 'Jeju'
+}
+
+// === 영문 날씨 → 한글 매핑 ===
+interface WeatherMapping {
+  label: string
+  icon: string
+}
+
+const WEATHER_MAP: Record<string, WeatherMapping> = {
+  'Sunny': { label: '맑음', icon: '☀️' },
+  'Clear': { label: '맑음', icon: '☀️' },
+  'Partly cloudy': { label: '구름조금', icon: '⛅' },
+  'Cloudy': { label: '흐림', icon: '☁️' },
+  'Overcast': { label: '흐림', icon: '☁️' },
+  'Mist': { label: '안개', icon: '🌫️' },
+  'Fog': { label: '안개', icon: '🌫️' },
+  'Patchy rain possible': { label: '비 가능', icon: '🌦️' },
+  'Light rain': { label: '가벼운 비', icon: '🌧️' },
+  'Moderate rain': { label: '비', icon: '🌧️' },
+  'Heavy rain': { label: '폭우', icon: '🌧️' },
+  'Light drizzle': { label: '이슬비', icon: '🌧️' },
+  'Patchy light rain': { label: '가벼운 비', icon: '🌧️' },
+  'Moderate or heavy rain shower': { label: '소나기', icon: '🌧️' },
+  'Light rain shower': { label: '소나기', icon: '🌦️' },
+  'Patchy snow possible': { label: '눈 가능', icon: '🌨️' },
+  'Light snow': { label: '가벼운 눈', icon: '❄️' },
+  'Moderate snow': { label: '눈', icon: '❄️' },
+  'Heavy snow': { label: '폭설', icon: '❄️' },
+  'Thundery outbreaks possible': { label: '뇌우 가능', icon: '⛈️' }
+}
+
+function getWeatherKorean(desc: string): WeatherMapping {
+  return WEATHER_MAP[desc] ?? { label: desc, icon: '🌤️' }
+}
+
+// === 메인 프로세스 HTTP 요청 유틸리티 ===
+async function fetchUrl(url: string): Promise<string> {
+  const response = await net.fetch(url)
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  return response.text()
+}
+
+// === NEIS 급식 데이터 파싱 ===
+interface ParsedMealResult {
+  menu: string[]
+  calories: string
+  date: string
+}
+
+interface NeisRow {
+  DDISH_NM: string
+  CAL_INFO: string
+  MLSV_YMD: string
+}
+
+interface NeisHead {
+  list_total_count?: number
+  RESULT?: { CODE: string; MESSAGE: string }
+}
+
+interface NeisResponse {
+  mealServiceDietInfo?: [
+    { head: NeisHead[] },
+    { row: NeisRow[] }
+  ]
+  RESULT?: { CODE: string; MESSAGE: string }
+}
+
+function parseMealMenu(raw: string): string[] {
+  return raw
+    .split('<br/>')
+    .map((item) => item.replace(/\([0-9.]+\)/g, '').trim())
+    .filter((item) => item.length > 0)
+}
+
+// === wttr.in 응답 파싱 ===
+interface WttrCurrent {
+  temp_C: string
+  humidity: string
+  weatherDesc: { value: string }[]
+}
+
+interface WttrDay {
+  mintempC: string
+  maxtempC: string
+}
+
+interface WttrJson {
+  current_condition: WttrCurrent[]
+  weather: WttrDay[]
+}
+
+interface WeatherResult {
+  temp: number
+  condition: string
+  tempMin: number
+  tempMax: number
+  humidity: number
+  icon: string
+  fetchedAt: number
+}
 
 const icon = join(__dirname, '../../resources/icon.png')
 
@@ -143,6 +261,79 @@ function registerIpcHandlers(): void {
   ipcMain.handle('save-store', (_event, key: string, value: unknown) => {
     saveStore(key, value)
   })
+
+  // === 급식 API ===
+  ipcMain.handle(
+    'fetch-meal',
+    async (_event, schoolCode: string, region: string, date: string, apiKey: string): Promise<ParsedMealResult | null> => {
+      try {
+        const eduCode = REGION_TO_EDU_CODE[region] ?? 'B10'
+        const key = apiKey || 'SAMPLE'
+        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(key)}&Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&MLSV_YMD=${encodeURIComponent(date)}`
+
+        const text = await fetchUrl(url)
+        const json = JSON.parse(text) as NeisResponse
+
+        // API 에러 확인
+        if (json.RESULT && json.RESULT.CODE !== 'INFO-000') {
+          return null
+        }
+
+        if (!json.mealServiceDietInfo || json.mealServiceDietInfo.length < 2) {
+          return null
+        }
+
+        const rows = json.mealServiceDietInfo[1].row
+        if (!rows || rows.length === 0) {
+          return null
+        }
+
+        const row = rows[0]
+        return {
+          menu: parseMealMenu(row.DDISH_NM),
+          calories: row.CAL_INFO || '',
+          date: `${row.MLSV_YMD.slice(0, 4)}-${row.MLSV_YMD.slice(4, 6)}-${row.MLSV_YMD.slice(6, 8)}`
+        }
+      } catch {
+        return null
+      }
+    }
+  )
+
+  // === 날씨 API ===
+  ipcMain.handle(
+    'fetch-weather',
+    async (_event, region: string): Promise<WeatherResult | null> => {
+      try {
+        const city = REGION_TO_CITY[region] ?? 'Seoul'
+        const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`
+
+        const text = await fetchUrl(url)
+        const json = JSON.parse(text) as WttrJson
+
+        if (!json.current_condition || json.current_condition.length === 0) {
+          return null
+        }
+
+        const current = json.current_condition[0]
+        const dayWeather = json.weather?.[0]
+        const desc = current.weatherDesc?.[0]?.value ?? 'Clear'
+        const mapped = getWeatherKorean(desc)
+
+        return {
+          temp: parseInt(current.temp_C, 10),
+          condition: mapped.label,
+          tempMin: dayWeather ? parseInt(dayWeather.mintempC, 10) : 0,
+          tempMax: dayWeather ? parseInt(dayWeather.maxtempC, 10) : 0,
+          humidity: parseInt(current.humidity, 10),
+          icon: mapped.icon,
+          fetchedAt: Date.now()
+        }
+      } catch {
+        return null
+      }
+    }
+  )
 }
 
 app.whenReady().then(() => {

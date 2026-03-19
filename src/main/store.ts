@@ -49,7 +49,7 @@ const DEFAULTS: Record<string, unknown> = {
   timetable: [],
   todos: [],
   ddays: [],
-  meal: { date: '', menu: [], calories: '' },
+  meal: { date: '', menu: [], calories: '', source: 'manual' },
   memo: '',
   widgetLayouts: [
     { widgetId: 'clock', x: 16, y: 16, width: 260, height: 110, visible: true },

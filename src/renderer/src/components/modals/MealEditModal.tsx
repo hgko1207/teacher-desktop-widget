@@ -49,7 +49,8 @@ export function MealEditModal({ open, onClose }: MealEditModalProps): ReactNode 
     const data: MealData = {
       date: todayString(),
       menu,
-      calories: calories.trim()
+      calories: calories.trim(),
+      source: 'manual'
     }
     await window.api.saveStore('meal', data)
     onClose()

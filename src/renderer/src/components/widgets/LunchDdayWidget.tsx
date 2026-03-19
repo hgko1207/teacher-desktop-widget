@@ -1,5 +1,5 @@
-import { useState, useEffect, type ReactNode } from 'react'
-import { CalendarDays, Utensils, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { CalendarDays, Utensils, ChevronRight, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { THEMES } from '../../config/themes'
 import { DdayEditModal } from '../modals/DdayEditModal'
@@ -9,6 +9,11 @@ import type { DdayItem, MealData } from '../../types'
 function todayString(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function todayYYYYMMDD(): string {
+  const d = new Date()
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
 }
 
 function calcD(targetDate: string): number {
@@ -32,29 +37,76 @@ function ddayColor(diff: number): string {
 
 export function LunchDdayWidget(): ReactNode {
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const schoolCode = useSettingsStore((s) => s.settings.schoolCode)
+  const region = useSettingsStore((s) => s.settings.region)
+  const neisApiKey = useSettingsStore((s) => s.settings.neisApiKey)
   const theme = THEMES[themeKey]
 
   const [ddays, setDdays] = useState<DdayItem[]>([])
   const [meal, setMeal] = useState<MealData | null>(null)
   const [ddayModalOpen, setDdayModalOpen] = useState(false)
   const [mealModalOpen, setMealModalOpen] = useState(false)
+  const [fetching, setFetching] = useState(false)
 
-  const loadData = async (): Promise<void> => {
+  const loadData = useCallback(async (): Promise<void> => {
     const storedDdays = await window.api.loadStore('ddays')
     if (storedDdays && Array.isArray(storedDdays)) setDdays(storedDdays as DdayItem[])
 
     const storedMeal = await window.api.loadStore('meal')
     if (storedMeal && typeof storedMeal === 'object' && 'date' in (storedMeal as MealData)) {
       const m = storedMeal as MealData
-      if (m.date === todayString() && m.menu.length > 0) setMeal(m)
-      else setMeal(null)
+      if (m.date === todayString() && m.menu.length > 0) {
+        setMeal(m)
+        return
+      }
     }
+    setMeal(null)
+  }, [])
+
+  const autoFetchMeal = useCallback(async (): Promise<void> => {
+    if (!schoolCode) return
+
+    setFetching(true)
+    try {
+      const result = await window.api.fetchMeal(schoolCode, region, todayYYYYMMDD(), neisApiKey)
+      if (result && result.menu.length > 0) {
+        const mealData: MealData = {
+          date: todayString(),
+          menu: result.menu,
+          calories: result.calories,
+          source: 'auto'
+        }
+        setMeal(mealData)
+        await window.api.saveStore('meal', mealData)
+      }
+    } catch {
+      // API 실패 시 기존 데이터 유지
+    } finally {
+      setFetching(false)
+    }
+  }, [schoolCode, region, neisApiKey])
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      await loadData()
+    }
+    init()
+  }, [loadData])
+
+  // 저장된 급식이 없고 학교코드가 있으면 자동 fetch
+  useEffect(() => {
+    if (meal === null && schoolCode) {
+      autoFetchMeal()
+    }
+  }, [meal, schoolCode, autoFetchMeal])
+
+  const handleDdayClose = (): void => { setDdayModalOpen(false); setTimeout(() => { loadData() }, 150) }
+  const handleMealClose = (): void => { setMealModalOpen(false); setTimeout(() => { loadData() }, 150) }
+
+  const handleRefresh = (e: React.MouseEvent): void => {
+    e.stopPropagation()
+    autoFetchMeal()
   }
-
-  useEffect(() => { loadData() }, [])
-
-  const handleDdayClose = (): void => { setDdayModalOpen(false); setTimeout(loadData, 150) }
-  const handleMealClose = (): void => { setMealModalOpen(false); setTimeout(loadData, 150) }
 
   const mainDday = ddays[0]
   const mainDiff = mainDday ? calcD(mainDday.targetDate) : null
@@ -134,17 +186,66 @@ export function LunchDdayWidget(): ReactNode {
                 <Utensils size={14} style={{ color: theme.primary }} />
               </div>
               <span className="text-sm font-bold" style={{ color: theme.primary }}>오늘의 급식</span>
+              {/* 자동/수동 뱃지 */}
+              {meal && (
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: meal.source === 'auto' ? '#dbeafe' : '#fef3c7',
+                    color: meal.source === 'auto' ? '#2563eb' : '#d97706'
+                  }}
+                >
+                  {meal.source === 'auto' ? '자동' : '수동'}
+                </span>
+              )}
             </div>
-            {meal?.calories && (
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.8)', color: theme.primary }}>
-                {meal.calories}
-              </span>
-            )}
+            <div className="flex items-center gap-1.5">
+              {/* 리프레시 버튼 */}
+              {schoolCode && (
+                <button
+                  onClick={handleRefresh}
+                  style={{
+                    background: 'rgba(255,255,255,0.8)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '28px',
+                    height: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    opacity: fetching ? 0.5 : 1,
+                    transition: 'opacity 0.2s'
+                  }}
+                  title="급식 새로고침"
+                >
+                  <RefreshCw
+                    size={12}
+                    style={{
+                      color: theme.primary,
+                      animation: fetching ? 'spin 1s linear infinite' : 'none'
+                    }}
+                  />
+                </button>
+              )}
+              {meal?.calories && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                  style={{ background: 'rgba(255,255,255,0.8)', color: theme.primary }}>
+                  {meal.calories}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 메뉴 목록 */}
-          {meal && meal.menu.length > 0 ? (
+          {fetching ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2">
+              <RefreshCw size={24} style={{ color: theme.border, animation: 'spin 1s linear infinite' }} />
+              <span className="text-sm font-medium" style={{ color: '#bbb' }}>
+                급식 정보를 가져오는 중...
+              </span>
+            </div>
+          ) : meal && meal.menu.length > 0 ? (
             <div className="flex-1 overflow-auto space-y-1.5">
               {meal.menu.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 py-0.5">
@@ -157,7 +258,7 @@ export function LunchDdayWidget(): ReactNode {
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <Utensils size={28} style={{ color: theme.border }} />
               <span className="text-sm font-medium" style={{ color: '#bbb' }}>
-                클릭하여 급식을 입력하세요
+                {schoolCode ? '급식 정보가 없습니다' : '클릭하여 급식을 입력하세요'}
               </span>
             </div>
           )}
@@ -173,6 +274,14 @@ export function LunchDdayWidget(): ReactNode {
 
       <DdayEditModal open={ddayModalOpen} onClose={handleDdayClose} />
       <MealEditModal open={mealModalOpen} onClose={handleMealClose} />
+
+      {/* spin animation */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   )
 }
