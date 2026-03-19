@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { Coffee, Heart } from 'lucide-react'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
+import { useSettingsStore } from '../../stores/settingsStore'
 
 const QUOTES = [
   '오늘 하루도 수고했어요!',
@@ -15,12 +16,14 @@ const QUOTES = [
 
 export function QuotesOffWorkWidget(): ReactNode {
   const { hours, minutes } = useCurrentTime()
+  const offWorkTime = useSettingsStore((s) => s.settings.offWorkTime)
   const [quoteIndex] = useState(() => Math.floor(Math.random() * QUOTES.length))
 
   const [offWorkText, setOffWorkText] = useState('')
 
   useEffect(() => {
-    const targetMinutes = 16 * 60 + 30 // 16:30
+    const [targetH, targetM] = offWorkTime.split(':').map(Number)
+    const targetMinutes = (targetH ?? 16) * 60 + (targetM ?? 30)
     const nowMinutes = hours * 60 + minutes
     const diff = targetMinutes - nowMinutes
 
@@ -35,7 +38,7 @@ export function QuotesOffWorkWidget(): ReactNode {
         setOffWorkText(`${m}분`)
       }
     }
-  }, [hours, minutes])
+  }, [hours, minutes, offWorkTime])
 
   const cardStyle: React.CSSProperties = {
     background: 'rgba(255,255,255,0.7)',

@@ -37,6 +37,13 @@ const DEFAULTS: Record<string, unknown> = {
       { period: 5, startTime: '13:10', endTime: '13:55' },
       { period: 6, startTime: '14:05', endTime: '14:50' },
       { period: 7, startTime: '15:00', endTime: '15:45' }
+    ],
+    studentCount: 30,
+    offWorkTime: '16:30',
+    launchers: [
+      { id: 'default-1', name: 'NEIS', letter: 'N', url: 'https://www.neis.go.kr', color: '#3b82f6' },
+      { id: 'default-2', name: '업무포털', letter: 'W', url: '', color: '#14b8a6' },
+      { id: 'default-3', name: '클래스팅', letter: 'C', url: 'https://www.classting.com', color: '#eab308' }
     ]
   },
   timetable: [],

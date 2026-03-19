@@ -94,6 +94,9 @@ export interface AppSettings {
   alwaysOnTop: boolean
   opacity: number // 0.0 ~ 1.0
   periodTimes: PeriodTime[]
+  studentCount: number
+  offWorkTime: string
+  launchers: LauncherItem[]
 }
 
 // === IPC 채널 ===
@@ -104,6 +107,15 @@ export type IpcChannel =
   | 'minimize-to-tray'
   | 'load-store'
   | 'save-store'
+
+// === 즐겨찾기 런처 ===
+export interface LauncherItem {
+  id: string
+  name: string
+  letter: string
+  url: string
+  color: string
+}
 
 // === 스마트 도구 ===
 export interface PhoneEntry {

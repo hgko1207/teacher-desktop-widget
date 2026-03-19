@@ -7,12 +7,6 @@ import { RandomPickerModal } from '../modals/RandomPickerModal'
 import { MissingSubmissionModal } from '../modals/MissingSubmissionModal'
 import { PhoneDirectoryModal } from '../modals/PhoneDirectoryModal'
 
-const LAUNCHERS = [
-  { name: 'NEIS', letter: 'N', bg: '#3b82f6', url: 'https://www.neis.go.kr' },
-  { name: '업무포털', letter: 'W', bg: '#14b8a6', url: '' },
-  { name: '클래스팅', letter: 'C', bg: '#eab308', url: 'https://www.classting.com' }
-]
-
 type ModalType = 'timer' | 'randomPicker' | 'missingSubmission' | 'phoneDirectory' | null
 
 interface ToolDef {
@@ -32,6 +26,7 @@ const TOOLS: ToolDef[] = [
 
 export function SmartToolsWidget(): ReactNode {
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const launchers = useSettingsStore((s) => s.settings.launchers)
   const theme = THEMES[themeKey]
   const [openModal, setOpenModal] = useState<ModalType>(null)
   const [timerInitialMinutes, setTimerInitialMinutes] = useState<number | undefined>(undefined)
@@ -62,15 +57,15 @@ export function SmartToolsWidget(): ReactNode {
         <div className="mb-3">
           <span className="text-xs font-semibold" style={{ color: '#888' }}>즐겨찾기 런처</span>
           <div className="flex items-center gap-3 mt-2">
-            {LAUNCHERS.map((l) => (
+            {launchers.map((l) => (
               <button
-                key={l.name}
+                key={l.id}
                 className="flex flex-col items-center group"
                 onClick={() => { if (l.url) window.open(l.url, '_blank') }}
               >
                 <div
                   className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm transition-transform group-hover:scale-110"
-                  style={{ background: l.bg, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  style={{ background: l.color, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
                 >
                   {l.letter}
                 </div>
