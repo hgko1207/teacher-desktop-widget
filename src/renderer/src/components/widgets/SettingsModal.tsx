@@ -209,6 +209,35 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
         </div>
       </div>
 
+      {/* Font size */}
+      <div className="mb-6">
+        <span className="text-sm font-semibold" style={sectionLabel()}>글자 크기</span>
+        <div className="flex items-center gap-3 mt-3">
+          {([
+            { key: 'small' as const, label: '작게', size: '13px' },
+            { key: 'medium' as const, label: '보통', size: '14px' },
+            { key: 'large' as const, label: '크게', size: '16px' }
+          ]).map((opt) => {
+            const selected = settings.fontSize === opt.key
+            return (
+              <button
+                key={opt.key}
+                className="flex-1 py-2.5 rounded-xl text-center transition-all"
+                style={{
+                  background: selected ? theme.accent : '#f3f4f6',
+                  color: selected ? '#fff' : '#666',
+                  fontWeight: selected ? 700 : 500,
+                  fontSize: opt.size
+                }}
+                onClick={() => setSettings({ fontSize: opt.key })}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Widget toggles */}
       <div>
         <span className="text-sm font-semibold" style={sectionLabel()}>위젯 표시 설정</span>

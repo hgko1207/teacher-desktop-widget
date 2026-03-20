@@ -147,6 +147,7 @@ export interface AppSettings {
   studentCount: number
   offWorkTime: string
   launchers: LauncherItem[]
+  fontSize: 'small' | 'medium' | 'large'
 }
 
 // === IPC 채널 ===

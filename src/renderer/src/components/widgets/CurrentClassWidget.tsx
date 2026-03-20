@@ -49,7 +49,7 @@ export function CurrentClassWidget(): ReactNode {
     <div
       className="h-full p-5 flex flex-col justify-between relative overflow-hidden"
       style={{
-        background: 'rgba(255,255,255,0.7)',
+        background: 'rgba(255,255,255,0.55)',
         backdropFilter: 'blur(12px)',
         borderRadius: '24px',
         border: '1px solid rgba(255,255,255,0.6)',

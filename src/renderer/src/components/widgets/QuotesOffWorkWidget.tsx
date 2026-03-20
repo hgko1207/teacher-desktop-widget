@@ -41,7 +41,7 @@ export function QuotesOffWorkWidget(): ReactNode {
   }, [hours, minutes, offWorkTime])
 
   const cardStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.7)',
+    background: 'rgba(255,255,255,0.55)',
     borderRadius: '24px',
     border: '1px solid rgba(255,255,255,0.6)',
     boxShadow: '0 1px 4px rgba(0,0,0,0.04)'

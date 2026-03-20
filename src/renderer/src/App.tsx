@@ -15,12 +15,15 @@ import { useTimetableStore } from './stores/timetableStore'
 import { useTodoStore } from './stores/todoStore'
 import { THEMES } from './config/themes'
 
+const FONT_SIZES = { small: '13px', medium: '14px', large: '16px' }
+
 function App(): ReactNode {
   const loadSettings = useSettingsStore((s) => s.loadSettings)
   const loadTimetable = useTimetableStore((s) => s.loadTimetable)
   const loadTodos = useTodoStore((s) => s.loadTodos)
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
   const visibleWidgets = useSettingsStore((s) => s.settings.visibleWidgets)
+  const fontSize = useSettingsStore((s) => s.settings.fontSize)
   const theme = THEMES[themeKey]
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -34,64 +37,49 @@ function App(): ReactNode {
     <div
       className="h-screen w-full flex flex-col"
       style={{
-        background: `linear-gradient(135deg, ${theme.bg} 0%, #f8fafc 50%, ${theme.hover} 100%)`
+        background: `linear-gradient(135deg, ${theme.bg} 0%, #f8fafc 50%, ${theme.hover} 100%)`,
+        fontSize: FONT_SIZES[fontSize] ?? '14px'
       }}
     >
       <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
-      <div className="flex-1 flex gap-4 px-4 pb-4 min-h-0">
-        {/* Left sidebar: Desktop Organizer */}
+      <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0">
+        {/* 좌측: 파티션 (넓힘) */}
         {visibleWidgets.organizer && <DesktopOrganizer />}
 
-        {/* Right: scrollable grid */}
-        <div className="flex-1 overflow-auto min-w-0">
-          <div className="grid grid-cols-12 gap-3 h-full" style={{ gridTemplateRows: 'auto 1fr' }}>
-            {/* Row 1: Clock (7) + CurrentClass (2) + QuotesOffWork (3) */}
+        {/* 중앙+우측: 메인 그리드 */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0 min-h-0 overflow-auto">
+          {/* 상단 행: 시계 + 현재수업 + 퇴근/명언 */}
+          <div className="flex gap-3 shrink-0" style={{ minHeight: '180px' }}>
             {visibleWidgets.clockWeather && (
-              <div className="col-span-7" style={{ minHeight: '200px' }}>
-                <ClockWidget />
-              </div>
+              <div className="flex-1 min-w-0"><ClockWidget /></div>
             )}
             {visibleWidgets.currentClass && (
-              <div className="col-span-2" style={{ minHeight: '200px' }}>
-                <CurrentClassWidget />
-              </div>
+              <div style={{ width: '220px' }} className="shrink-0"><CurrentClassWidget /></div>
             )}
             {visibleWidgets.quotesOffWork && (
-              <div className="col-span-3" style={{ minHeight: '200px' }}>
-                <QuotesOffWorkWidget />
-              </div>
+              <div style={{ width: '280px' }} className="shrink-0"><QuotesOffWorkWidget /></div>
             )}
+          </div>
 
-            {/* Row 2: Timetable (5) + Todo (3) + RightStack (4) */}
+          {/* 하단 행: 시간표 + 할일 + 우측 스택 */}
+          <div className="flex-1 flex gap-3 min-h-0">
+            {/* 시간표 */}
             {visibleWidgets.timetable && (
-              <div className="col-span-5" style={{ minHeight: '340px' }}>
-                <TimetableWidget />
-              </div>
-            )}
-            {visibleWidgets.todo && (
-              <div className="col-span-3" style={{ minHeight: '340px' }}>
-                <TodoWidget />
-              </div>
+              <div className="flex-1 min-w-0 min-h-0"><TimetableWidget /></div>
             )}
 
-            {/* Right stack: Launcher + LunchDday + SmartTools */}
-            {(visibleWidgets.lunchDday || visibleWidgets.smartTools) && (
-              <div className="col-span-4 flex flex-col gap-3" style={{ minHeight: '340px' }}>
-                {/* Launcher row */}
-                <LauncherWidget />
-                {/* Lunch + D-Day */}
-                {visibleWidgets.lunchDday && (
-                  <div style={{ flex: '1 1 0', minHeight: 0 }}>
-                    <LunchDdayWidget />
-                  </div>
-                )}
-                {/* Smart Tools */}
-                {visibleWidgets.smartTools && (
-                  <SmartToolsWidget />
-                )}
-              </div>
+            {/* 할 일 */}
+            {visibleWidgets.todo && (
+              <div style={{ width: '260px' }} className="shrink-0 min-h-0"><TodoWidget /></div>
             )}
+
+            {/* 우측 스택: 런처 + 급식D-Day + 스마트도구 */}
+            <div style={{ width: '280px' }} className="shrink-0 flex flex-col gap-3 min-h-0 overflow-auto">
+              <LauncherWidget />
+              {visibleWidgets.lunchDday && <LunchDdayWidget />}
+              {visibleWidgets.smartTools && <SmartToolsWidget />}
+            </div>
           </div>
         </div>
       </div>

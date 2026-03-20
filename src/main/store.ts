@@ -44,7 +44,8 @@ const DEFAULTS: Record<string, unknown> = {
       { id: 'default-1', name: 'NEIS', letter: 'N', url: 'https://www.neis.go.kr', color: '#3b82f6' },
       { id: 'default-2', name: '업무포털', letter: 'W', url: '', color: '#14b8a6' },
       { id: 'default-3', name: '클래스팅', letter: 'C', url: 'https://www.classting.com', color: '#eab308' }
-    ]
+    ],
+    fontSize: 'medium'
   },
   timetable: [],
   todos: [],

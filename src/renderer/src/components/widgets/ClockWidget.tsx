@@ -38,7 +38,7 @@ export function ClockWidget(): ReactNode {
 
   return (
     <div className="h-full p-6 flex flex-col justify-between"
-      style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+      style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
       <div>
         <p className="text-sm font-medium" style={{ color: '#888' }}>현재 시각</p>
         <div className="flex items-baseline mt-1">

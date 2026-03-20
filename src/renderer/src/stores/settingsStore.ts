@@ -45,7 +45,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   periodTimes: DEFAULT_PERIOD_TIMES,
   studentCount: 30,
   offWorkTime: '16:30',
-  launchers: DEFAULT_LAUNCHERS
+  launchers: DEFAULT_LAUNCHERS,
+  fontSize: 'medium' as const
 }
 
 interface SettingsState {

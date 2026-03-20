@@ -287,7 +287,7 @@ export function LunchDdayWidget(): ReactNode {
             <button
               onClick={handleMealPrev}
               style={{
-                background: 'rgba(255,255,255,0.7)',
+                background: 'rgba(255,255,255,0.55)',
                 border: 'none',
                 borderRadius: '6px',
                 width: '22px',
@@ -304,7 +304,7 @@ export function LunchDdayWidget(): ReactNode {
               onClick={handleMealToday}
               className="text-[11px] font-semibold px-2 py-0.5 rounded-md"
               style={{
-                background: mealDateOffset === 0 ? theme.accent : 'rgba(255,255,255,0.7)',
+                background: mealDateOffset === 0 ? theme.accent : 'rgba(255,255,255,0.55)',
                 color: mealDateOffset === 0 ? '#fff' : '#666',
                 border: 'none',
                 cursor: 'pointer',
@@ -316,7 +316,7 @@ export function LunchDdayWidget(): ReactNode {
             <button
               onClick={handleMealNext}
               style={{
-                background: 'rgba(255,255,255,0.7)',
+                background: 'rgba(255,255,255,0.55)',
                 border: 'none',
                 borderRadius: '6px',
                 width: '22px',

@@ -275,8 +275,9 @@ export function DesktopOrganizer(): ReactNode {
 
   return (
     <div
-      className="w-72 h-full flex flex-col gap-3 p-3"
+      className="h-full flex flex-col gap-3 p-3 shrink-0"
       style={{
+        width: '320px',
         background: 'rgba(255,255,255,0.3)',
         backdropFilter: 'blur(12px)',
         borderRadius: '24px',
