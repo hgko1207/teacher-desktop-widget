@@ -1,5 +1,5 @@
-import { type ReactNode, useState, useEffect, useCallback } from 'react'
-import { Folder, Plus } from 'lucide-react'
+import { type ReactNode, useState, useEffect, useCallback, useRef } from 'react'
+import { Folder, Plus, File, FolderOpen } from 'lucide-react'
 import { usePartitionStore } from '../../stores/partitionStore'
 import { getFileIcon, getExtension } from '../../utils/fileIcons'
 import { ContextMenu } from '../ui/ContextMenu'
@@ -11,14 +11,20 @@ interface ContextMenuState {
   item: PartitionItem
 }
 
+interface AddMenuState {
+  categoryId: string
+  x: number
+  y: number
+}
+
 interface CategoryZoneProps {
   category: PartitionCategory
   items: PartitionItem[]
-  onAddFiles: (categoryId: string) => void
+  onShowAddMenu: (categoryId: string, x: number, y: number) => void
   onContextMenu: (e: React.MouseEvent, item: PartitionItem) => void
 }
 
-function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZoneProps): ReactNode {
+function CategoryZone({ category, items, onShowAddMenu, onContextMenu }: CategoryZoneProps): ReactNode {
   const [isDragOver, setIsDragOver] = useState(false)
   const { addItem } = usePartitionStore()
 
@@ -67,6 +73,11 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
     await window.api.openPath(item.path)
   }, [])
 
+  const handleAddClick = useCallback((e: React.MouseEvent): void => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    onShowAddMenu(category.id, rect.left, rect.bottom + 4)
+  }, [category.id, onShowAddMenu])
+
   return (
     <div
       className="flex flex-col"
@@ -97,7 +108,7 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
           {category.name}
         </span>
         <button
-          onClick={() => onAddFiles(category.id)}
+          onClick={handleAddClick}
           className="flex items-center justify-center"
           style={{
             width: '22px',
@@ -119,7 +130,7 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
 
       {/* Items grid */}
       <div
-        className="flex flex-wrap gap-1 p-2"
+        className="flex flex-wrap gap-2 p-2"
         style={{ flex: '1 1 0', overflowY: 'auto', minHeight: 0 }}
       >
         {items.length === 0 ? (
@@ -127,7 +138,7 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
             className="flex items-center justify-center w-full"
             style={{ color: 'rgba(156,163,175,0.7)', fontSize: '11px', minHeight: '36px' }}
           >
-            파일을 여기에 드래그하세요
+            실제 아이콘들을 이 칸에 모아두세요
           </div>
         ) : (
           items.map((item) => (
@@ -135,9 +146,9 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
               key={item.id}
               className="flex flex-col items-center"
               style={{
-                width: '60px',
-                padding: '4px 2px',
-                borderRadius: '8px',
+                width: '74px',
+                padding: '6px 4px',
+                borderRadius: '10px',
                 cursor: 'pointer',
                 transition: 'background 0.15s'
               }}
@@ -149,12 +160,23 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
                 onContextMenu(e, item)
               }}
             >
-              <span style={{ fontSize: '28px', lineHeight: 1 }}>
+              <span style={{ fontSize: '32px', lineHeight: 1 }}>
                 {getFileIcon(item.extension, item.type)}
               </span>
               <span
-                className="w-full text-center truncate"
-                style={{ fontSize: '10px', color: '#4b5563', marginTop: '2px' }}
+                className="w-full text-center"
+                style={{
+                  fontSize: '11px',
+                  color: '#4b5563',
+                  marginTop: '4px',
+                  lineHeight: '1.3',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  wordBreak: 'break-all'
+                }}
                 title={item.name}
               >
                 {item.name}
@@ -170,13 +192,28 @@ function CategoryZone({ category, items, onAddFiles, onContextMenu }: CategoryZo
 export function DesktopOrganizer(): ReactNode {
   const { categories, items, removeItem, loadPartition, addItem } = usePartitionStore()
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
+  const [addMenu, setAddMenu] = useState<AddMenuState | null>(null)
+  const addMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadPartition()
   }, [loadPartition])
 
+  // Close add menu on outside click
+  useEffect(() => {
+    if (!addMenu) return
+    const handler = (e: MouseEvent): void => {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setAddMenu(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [addMenu])
+
   const handleAddFiles = useCallback(
     async (categoryId: string): Promise<void> => {
+      setAddMenu(null)
       const filePaths = await window.api.selectFiles()
       for (let i = 0; i < filePaths.length; i++) {
         const fp = filePaths[i]
@@ -198,6 +235,35 @@ export function DesktopOrganizer(): ReactNode {
     [addItem]
   )
 
+  const handleAddFolder = useCallback(
+    async (categoryId: string): Promise<void> => {
+      setAddMenu(null)
+      const folderPaths = await window.api.selectFolder()
+      for (let i = 0; i < folderPaths.length; i++) {
+        const fp = folderPaths[i]
+        const name = fp.split(/[\\/]/).pop() ?? fp
+        const newItem: PartitionItem = {
+          id: `${Date.now()}-${i}`,
+          categoryId,
+          name,
+          path: fp,
+          type: 'folder',
+          extension: '',
+          addedAt: new Date().toISOString()
+        }
+        addItem(newItem)
+      }
+    },
+    [addItem]
+  )
+
+  const handleShowAddMenu = useCallback(
+    (categoryId: string, x: number, y: number): void => {
+      setAddMenu({ categoryId, x, y })
+    },
+    []
+  )
+
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, item: PartitionItem): void => {
       setContextMenu({ x: e.clientX, y: e.clientY, item })
@@ -217,15 +283,65 @@ export function DesktopOrganizer(): ReactNode {
         border: '1px solid rgba(255,255,255,0.5)'
       }}
     >
+      {/* Guidance header */}
+      <div className="px-2 pt-1 pb-1" style={{ flexShrink: 0 }}>
+        <div className="text-sm font-bold" style={{ color: '#374151' }}>
+          {'📁 바탕화면 빠른 폴더'}
+        </div>
+        <div className="text-[10px] mt-0.5" style={{ color: '#9ca3af' }}>
+          이 공간에 파일과 폴더를 드래그하여 정리하세요
+        </div>
+      </div>
+
       {sortedCategories.map((cat) => (
         <CategoryZone
           key={cat.id}
           category={cat}
           items={items.filter((item) => item.categoryId === cat.id)}
-          onAddFiles={handleAddFiles}
+          onShowAddMenu={handleShowAddMenu}
           onContextMenu={handleContextMenu}
         />
       ))}
+
+      {/* Add menu dropdown */}
+      {addMenu && (
+        <div
+          ref={addMenuRef}
+          className="fixed"
+          style={{
+            left: `${addMenu.x}px`,
+            top: `${addMenu.y}px`,
+            zIndex: 9999,
+            background: '#fff',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            border: '1px solid #e5e7eb',
+            overflow: 'hidden',
+            minWidth: '140px'
+          }}
+        >
+          <button
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#374151' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+            onClick={() => handleAddFiles(addMenu.categoryId)}
+          >
+            <File size={14} style={{ color: '#6b7280' }} />
+            파일 추가
+          </button>
+          <button
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#374151' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+            onClick={() => handleAddFolder(addMenu.categoryId)}
+          >
+            <FolderOpen size={14} style={{ color: '#6b7280' }} />
+            폴더 추가
+          </button>
+        </div>
+      )}
 
       {contextMenu && (
         <ContextMenu

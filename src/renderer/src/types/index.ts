@@ -179,6 +179,16 @@ export interface SubmissionRecord {
   checkedNumbers: number[]
 }
 
+// === 문서번호 ===
+export interface DocumentNumber {
+  id: string
+  title: string
+  number: string
+  category: string
+  memo: string
+  addedAt: string
+}
+
 // === 파일 파티션 ===
 export interface PartitionCategory {
   id: string
@@ -212,4 +222,5 @@ export interface StoreSchema {
   weatherCache: WeatherData | null
   partitionCategories: PartitionCategory[]
   partitionItems: PartitionItem[]
+  documentNumbers: DocumentNumber[]
 }

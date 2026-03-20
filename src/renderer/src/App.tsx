@@ -8,6 +8,7 @@ import { DesktopOrganizer } from './components/widgets/DesktopOrganizer'
 import { QuotesOffWorkWidget } from './components/widgets/QuotesOffWorkWidget'
 import { LunchDdayWidget } from './components/widgets/LunchDdayWidget'
 import { SmartToolsWidget } from './components/widgets/SmartToolsWidget'
+import { LauncherWidget } from './components/widgets/LauncherWidget'
 import { SettingsModal } from './components/widgets/SettingsModal'
 import { useSettingsStore } from './stores/settingsStore'
 import { useTimetableStore } from './stores/timetableStore'
@@ -62,25 +63,33 @@ function App(): ReactNode {
               </div>
             )}
 
-            {/* Row 2: Timetable (6) + Todo (2) + LunchDday (2) + SmartTools (2) */}
+            {/* Row 2: Timetable (5) + Todo (3) + RightStack (4) */}
             {visibleWidgets.timetable && (
-              <div className="col-span-6" style={{ minHeight: '340px' }}>
+              <div className="col-span-5" style={{ minHeight: '340px' }}>
                 <TimetableWidget />
               </div>
             )}
             {visibleWidgets.todo && (
-              <div className="col-span-2" style={{ minHeight: '340px' }}>
+              <div className="col-span-3" style={{ minHeight: '340px' }}>
                 <TodoWidget />
               </div>
             )}
-            {visibleWidgets.lunchDday && (
-              <div className="col-span-2" style={{ minHeight: '340px' }}>
-                <LunchDdayWidget />
-              </div>
-            )}
-            {visibleWidgets.smartTools && (
-              <div className="col-span-2" style={{ minHeight: '340px' }}>
-                <SmartToolsWidget />
+
+            {/* Right stack: Launcher + LunchDday + SmartTools */}
+            {(visibleWidgets.lunchDday || visibleWidgets.smartTools) && (
+              <div className="col-span-4 flex flex-col gap-3" style={{ minHeight: '340px' }}>
+                {/* Launcher row */}
+                <LauncherWidget />
+                {/* Lunch + D-Day */}
+                {visibleWidgets.lunchDday && (
+                  <div style={{ flex: '1 1 0', minHeight: 0 }}>
+                    <LunchDdayWidget />
+                  </div>
+                )}
+                {/* Smart Tools */}
+                {visibleWidgets.smartTools && (
+                  <SmartToolsWidget />
+                )}
               </div>
             )}
           </div>

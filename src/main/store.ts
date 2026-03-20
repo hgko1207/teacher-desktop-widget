@@ -58,6 +58,7 @@ const DEFAULTS: Record<string, unknown> = {
     { id: 'cat-4', name: '기타', iconColor: '#f59e0b', order: 3 }
   ],
   partitionItems: [],
+  documentNumbers: [],
   widgetLayouts: [
     { widgetId: 'clock', x: 16, y: 16, width: 260, height: 110, visible: true },
     { widgetId: 'weather', x: 290, y: 16, width: 280, height: 110, visible: true },
