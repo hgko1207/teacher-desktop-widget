@@ -44,40 +44,44 @@ function App(): ReactNode {
       <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
       <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0">
-        {/* 좌측: 파티션 (넓힘) */}
+        {/* 좌측: 파티션 */}
         {visibleWidgets.organizer && <DesktopOrganizer />}
 
-        {/* 중앙+우측: 메인 그리드 */}
-        <div className="flex-1 flex flex-col gap-3 min-w-0 min-h-0 overflow-auto">
-          {/* 상단 행: 시계 + 현재수업 + 퇴근/명언 */}
-          <div className="flex gap-3 shrink-0" style={{ minHeight: '180px' }}>
+        {/* 메인 영역 */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0 min-h-0">
+          {/* 상단: 시계 + 현재수업 + 퇴근/명언 */}
+          <div className="flex gap-3 shrink-0" style={{ height: '160px' }}>
             {visibleWidgets.clockWeather && (
               <div className="flex-1 min-w-0"><ClockWidget /></div>
             )}
             {visibleWidgets.currentClass && (
-              <div style={{ width: '220px' }} className="shrink-0"><CurrentClassWidget /></div>
+              <div style={{ width: '200px' }} className="shrink-0"><CurrentClassWidget /></div>
             )}
             {visibleWidgets.quotesOffWork && (
-              <div style={{ width: '280px' }} className="shrink-0"><QuotesOffWorkWidget /></div>
+              <div style={{ width: '260px' }} className="shrink-0"><QuotesOffWorkWidget /></div>
             )}
           </div>
 
-          {/* 하단 행: 시간표 + 할일 + 우측 스택 */}
+          {/* 하단: 시간표 + 할일/D-Day/메모 + 우측 스택 */}
           <div className="flex-1 flex gap-3 min-h-0">
-            {/* 시간표 */}
+            {/* 시간표 (레퍼런스처럼 적당한 크기) */}
             {visibleWidgets.timetable && (
-              <div className="flex-1 min-w-0 min-h-0"><TimetableWidget /></div>
+              <div style={{ width: '380px' }} className="shrink-0 min-h-0"><TimetableWidget /></div>
             )}
 
-            {/* 할 일 */}
+            {/* 할일 + D-Day + 메모 (세로 스택, 넓게) */}
             {visibleWidgets.todo && (
-              <div style={{ width: '260px' }} className="shrink-0 min-h-0"><TodoWidget /></div>
+              <div className="flex-1 flex flex-col gap-3 min-w-0 min-h-0">
+                {/* 할 일 (메인 영역) */}
+                <div className="flex-1 min-h-0"><TodoWidget /></div>
+                {/* D-Day + 메모 (하단 컴팩트) */}
+                {visibleWidgets.lunchDday && <LunchDdayWidget />}
+              </div>
             )}
 
-            {/* 우측 스택: 런처 + 급식D-Day + 스마트도구 */}
-            <div style={{ width: '280px' }} className="shrink-0 flex flex-col gap-3 min-h-0 overflow-auto">
+            {/* 우측: 런처 + 급식 + 스마트도구 */}
+            <div style={{ width: '260px' }} className="shrink-0 flex flex-col gap-3 min-h-0 overflow-auto">
               <LauncherWidget />
-              {visibleWidgets.lunchDday && <LunchDdayWidget />}
               {visibleWidgets.smartTools && <SmartToolsWidget />}
             </div>
           </div>
