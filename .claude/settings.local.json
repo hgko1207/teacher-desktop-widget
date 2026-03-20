@@ -48,7 +48,14 @@
       "Read(//d/project/2026/desktop-widget/**)",
       "Read(//d/project/2026/desktop-widget/$USERPROFILE/**)",
       "Bash(curl -s \"https://wttr.in/Seoul?format=j1\")",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); d.pop\\(''''weatherCache'''',None\\); json.dump\\(d,open\\(sys.argv[1],''''w''''\\),ensure_ascii=False,indent=2\\)\" \"C:/Users/khkkh/AppData/Roaming/teacher-widget/teacher-widget-data.json\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); d.pop\\(''''weatherCache'''',None\\); json.dump\\(d,open\\(sys.argv[1],''''w''''\\),ensure_ascii=False,indent=2\\)\" \"C:/Users/khkkh/AppData/Roaming/teacher-widget/teacher-widget-data.json\")",
+      "Read(//d/project/2026/desktop-widget/$HOME/.claude/**)",
+      "Read(//d/project/2026/desktop-widget/$HOME/**)",
+      "Bash(mkdir -p dev plan research simplify)",
+      "Bash(mv dev.md dev/SKILL.md)",
+      "Bash(mv plan.md plan/SKILL.md)",
+      "Bash(mv research.md research/SKILL.md)",
+      "Bash(mv simplify.md simplify/SKILL.md)"
     ]
   }
 }

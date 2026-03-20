@@ -89,14 +89,107 @@
 
 ---
 
+## Phase 4: 바탕화면 파티션 실제 기능 구현
+
+### 개요
+현재 좌측 파티션은 빈 점선 영역. 이를 실제 **파일/폴더를 드래그&드롭으로 배치**하고
+**더블클릭으로 열 수 있는** 파일 정리 공간으로 만든다.
+
+### Step 1: 파일/폴더 드래그 & 드롭 수신 🔴 최우선
+
+#### 4-1. 파티션 영역에 파일 드롭 기능
+- **구현**: 윈도우 탐색기에서 파일/폴더를 파티션 영역으로 드래그&드롭
+- **기술**: HTML5 `dragover` + `drop` 이벤트 → `e.dataTransfer.files`로 경로 추출
+- **Electron**: `webkitGetAsEntry()` 또는 `file.path` 속성으로 전체 경로 획득
+- **저장**: 경로(path) + 이름(name) + 타입(file/folder) + 아이콘 → 로컬 저장소
+- **카테고리**: 어떤 파티션에 드롭했는지에 따라 카테고리 자동 분류
+
+#### 4-2. 파티션 카테고리 구성 (설정 가능)
+- **기본 4개**: 운영계획 / 진행중 업무 / 나중에 볼 파일 / 기타
+- **설정 모달에서 편집**: 이름 변경, 추가/삭제, 순서 변경
+- **아이콘**: 카테고리별 색상 + Folder 아이콘
+
+### Step 2: 배치된 파일/폴더 표시 + 조작 🔴 최우선
+
+#### 4-3. 파일/폴더 아이콘 표시
+- **구현**: 각 파티션 안에 배치된 파일/폴더를 아이콘+이름으로 표시
+- **디자인**: 윈도우 바탕화면 아이콘과 유사 (작은 아이콘 + 이름 텍스트)
+- **아이콘 타입**: 폴더(📁), 문서(.hwp/.docx → 📄), 엑셀(.xlsx → 📊), PDF(📕), 이미지(🖼️), 기타(📎)
+- **그리드 배치**: 파티션 내에서 자동 그리드 배치 (윈도우 바탕화면처럼)
+
+#### 4-4. 더블클릭으로 파일/폴더 열기
+- **구현**: Electron `shell.openPath(path)` 호출
+- **IPC**: renderer → preload → main process → `shell.openPath()`
+- **폴더**: 탐색기로 열림
+- **파일**: 연결된 기본 프로그램으로 열림 (.hwp → 한글, .xlsx → 엑셀 등)
+
+#### 4-5. 우클릭 컨텍스트 메뉴
+- **파일/폴더에서 우클릭**: "열기 / 폴더 위치 열기 / 파티션에서 제거"
+- **빈 영역에서 우클릭**: "폴더 추가 / 파일 추가 (파일 선택 대화상자)"
+
+### Step 3: 데이터 모델 + 저장 🟡 높음
+
+#### 4-6. 타입 정의
+```typescript
+interface PartitionCategory {
+  id: string
+  name: string          // "운영계획"
+  iconColor: string     // "#3b82f6"
+  order: number
+}
+
+interface PartitionItem {
+  id: string
+  categoryId: string    // 어떤 파티션에 속하는지
+  name: string          // 파일/폴더 이름
+  path: string          // 전체 경로 "D:\교무\운영계획.hwp"
+  type: 'file' | 'folder'
+  extension: string     // "hwp", "xlsx", "" (폴더)
+  addedAt: string       // ISO 날짜
+}
+```
+
+#### 4-7. 저장소
+- **Store key**: `partitionCategories` (카테고리 목록)
+- **Store key**: `partitionItems` (배치된 파일/폴더 목록)
+- **Zustand 스토어**: `partitionStore.ts` (CRUD + 저장/로드)
+
+### Step 4: 바탕화면 고정 모드 🟢 보통 (선택)
+
+#### 4-8. 윈도우를 바탕화면 레벨로 내리기
+- **구현**: Electron BrowserWindow를 바탕화면 아래, 아이콘 위에 배치
+- **기술**: Windows API `SetWindowPos` + `HWND_BOTTOM` 또는 `shell:desktop` 기법
+- **참고**: Rainmeter가 사용하는 방식
+- **리스크**: Windows 업데이트에 따라 불안정할 수 있음
+- **대안**: "항상 뒤에(Always on Bottom)" 모드로 타협 가능
+
+### 필요한 IPC 추가
+```
+'open-path'     → shell.openPath(path)
+'open-folder'   → shell.showItemInFolder(path)
+'select-file'   → dialog.showOpenDialog (파일 선택)
+'select-folder' → dialog.showOpenDialog (폴더 선택)
+```
+
+---
+
+## 일정 요약 (업데이트)
+
+---
+
 ## 일정 요약
 
-| Step | 내용 | 항목 수 | 우선순위 |
-|------|------|---------|---------|
-| **Step 1** | 스마트 도구 (타이머, 랜덤뽑기, 미제출자, 내선번호) | 4개 | 🔴 최우선 |
-| **Step 2** | D-Day 편집 + 급식 개선 | 2개 | 🟡 높음 |
-| **Step 3** | 설정 모달 확장 (학교, 교시, 퇴근, 런처) | 4개 | 🟡 높음 |
-| **Step 4** | API 연동 (급식, 날씨, 시간표) | 3개 | 🟢 보통 |
+| Phase/Step | 내용 | 상태 |
+|------------|------|------|
+| Phase 1~2 | 프로젝트 셋업 + 디자인 | ✅ 완료 |
+| Phase 3 Step 1 | 스마트 도구 4종 | ✅ 완료 |
+| Phase 3 Step 2 | D-Day + 급식 | ✅ 완료 |
+| Phase 3 Step 3 | 설정 모달 4탭 | ✅ 완료 |
+| Phase 3 Step 4 | 날씨/급식 API 연동 | ✅ 완료 |
+| **Phase 4 Step 1** | **파일/폴더 드래그&드롭** | 🔴 다음 |
+| **Phase 4 Step 2** | **아이콘 표시 + 더블클릭 열기** | 🔴 다음 |
+| Phase 4 Step 3 | 데이터 저장 + 우클릭 메뉴 | 🟡 높음 |
+| Phase 4 Step 4 | 바탕화면 고정 모드 | 🟢 선택 |
 
 ---
 
