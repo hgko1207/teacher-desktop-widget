@@ -51,6 +51,13 @@ const DEFAULTS: Record<string, unknown> = {
   ddays: [],
   meal: { date: '', menu: [], calories: '', source: 'manual' },
   memo: '',
+  partitionCategories: [
+    { id: 'cat-1', name: '운영계획', iconColor: '#6366f1', order: 0 },
+    { id: 'cat-2', name: '진행중 업무', iconColor: '#3b82f6', order: 1 },
+    { id: 'cat-3', name: '나중에 볼 파일', iconColor: '#22c55e', order: 2 },
+    { id: 'cat-4', name: '기타', iconColor: '#f59e0b', order: 3 }
+  ],
+  partitionItems: [],
   widgetLayouts: [
     { widgetId: 'clock', x: 16, y: 16, width: 260, height: 110, visible: true },
     { widgetId: 'weather', x: 290, y: 16, width: 280, height: 110, visible: true },

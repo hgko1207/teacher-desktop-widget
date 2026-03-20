@@ -6,6 +6,11 @@ interface MealResult {
   date: string
 }
 
+interface PathInfo {
+  exists: boolean
+  isDirectory: boolean
+}
+
 interface WeatherResult {
   temp: number
   condition: string
@@ -30,7 +35,12 @@ const widgetApi = {
   fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string): Promise<MealResult | null> =>
     ipcRenderer.invoke('fetch-meal', schoolCode, region, date, apiKey),
   fetchWeather: (region: string): Promise<WeatherResult | null> =>
-    ipcRenderer.invoke('fetch-weather', region)
+    ipcRenderer.invoke('fetch-weather', region),
+  openPath: (filePath: string): Promise<string> => ipcRenderer.invoke('open-path', filePath),
+  showInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke('show-in-folder', filePath),
+  selectFiles: (): Promise<string[]> => ipcRenderer.invoke('select-files'),
+  selectFolder: (): Promise<string[]> => ipcRenderer.invoke('select-folder'),
+  getPathInfo: (filePath: string): Promise<PathInfo> => ipcRenderer.invoke('get-path-info', filePath)
 }
 
 contextBridge.exposeInMainWorld('api', widgetApi)

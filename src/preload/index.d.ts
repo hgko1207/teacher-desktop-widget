@@ -1,3 +1,8 @@
+interface PathInfo {
+  exists: boolean
+  isDirectory: boolean
+}
+
 interface MealResult {
   menu: string[]
   calories: string
@@ -26,6 +31,11 @@ interface WidgetApi {
   saveStore: (key: string, value: unknown) => Promise<void>
   fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string) => Promise<MealResult | null>
   fetchWeather: (region: string) => Promise<WeatherResult | null>
+  openPath: (filePath: string) => Promise<string>
+  showInFolder: (filePath: string) => Promise<void>
+  selectFiles: () => Promise<string[]>
+  selectFolder: () => Promise<string[]>
+  getPathInfo: (filePath: string) => Promise<PathInfo>
 }
 
 declare global {

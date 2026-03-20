@@ -179,6 +179,24 @@ export interface SubmissionRecord {
   checkedNumbers: number[]
 }
 
+// === 파일 파티션 ===
+export interface PartitionCategory {
+  id: string
+  name: string
+  iconColor: string
+  order: number
+}
+
+export interface PartitionItem {
+  id: string
+  categoryId: string
+  name: string
+  path: string
+  type: 'file' | 'folder'
+  extension: string
+  addedAt: string
+}
+
 // === electron-store 데이터 ===
 export interface StoreSchema {
   settings: AppSettings
@@ -192,4 +210,6 @@ export interface StoreSchema {
   submissionRecords: SubmissionRecord[]
   studentCount: number
   weatherCache: WeatherData | null
+  partitionCategories: PartitionCategory[]
+  partitionItems: PartitionItem[]
 }

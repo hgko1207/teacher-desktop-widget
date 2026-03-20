@@ -1,4 +1,5 @@
-import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net, dialog } from 'electron'
+import { statSync } from 'fs'
 import { join } from 'path'
 import { initStore, loadStore, saveStore } from './store'
 
@@ -264,6 +265,38 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('save-store', (_event, key: string, value: unknown) => {
     saveStore(key, value)
+  })
+
+  // === 파일 파티션 ===
+  ipcMain.handle('open-path', async (_event, filePath: string) => {
+    return shell.openPath(filePath)
+  })
+
+  ipcMain.handle('show-in-folder', (_event, filePath: string) => {
+    shell.showItemInFolder(filePath)
+  })
+
+  ipcMain.handle('select-files', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections']
+    })
+    return result.filePaths
+  })
+
+  ipcMain.handle('select-folder', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    })
+    return result.filePaths
+  })
+
+  ipcMain.handle('get-path-info', async (_event, filePath: string) => {
+    try {
+      const stats = statSync(filePath)
+      return { exists: true, isDirectory: stats.isDirectory() }
+    } catch {
+      return { exists: false, isDirectory: false }
+    }
   })
 
   // === 급식 API ===
