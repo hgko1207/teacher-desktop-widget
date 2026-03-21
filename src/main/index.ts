@@ -61,6 +61,66 @@ async function fetchUrl(url: string): Promise<string> {
   return response.text()
 }
 
+// === NEIS 학교 검색 결과 ===
+interface SchoolSearchResult {
+  schoolCode: string
+  schoolName: string
+  eduCode: string
+  address: string
+  schoolType: string
+}
+
+// === NEIS 시간표 API 결과 ===
+interface TimetableApiResult {
+  date: string
+  grade: number
+  classNum: number
+  period: number
+  subject: string
+}
+
+// === NEIS 학교 검색 API 응답 ===
+interface NeisSchoolRow {
+  SD_SCHUL_CODE: string
+  SCHUL_NM: string
+  ATPT_OFCDC_SC_CODE: string
+  ORG_RDNMA: string
+  SCHUL_KND_SC_NM: string
+}
+
+interface NeisSchoolResponse {
+  schoolInfo?: [
+    { head: NeisHead[] },
+    { row: NeisSchoolRow[] }
+  ]
+  RESULT?: { CODE: string; MESSAGE: string }
+}
+
+// === NEIS 시간표 API 응답 ===
+interface NeisTimetableRow {
+  ALL_TI_YMD: string
+  GRADE: string
+  CLASS_NM: string
+  PERIO: string
+  ITRT_CNTNT: string
+}
+
+interface NeisTimetableData {
+  head: NeisHead[]
+}
+
+interface NeisTimetableRowData {
+  row: NeisTimetableRow[]
+}
+
+function parseTimetableResponse(json: Record<string, unknown>, endpoint: string): NeisTimetableRow[] {
+  const data = json[endpoint] as [NeisTimetableData, NeisTimetableRowData] | undefined
+  if (data && Array.isArray(data) && data.length >= 2) {
+    return data[1].row
+  }
+  return []
+}
+
 // === NEIS 급식 데이터 파싱 ===
 interface ParsedMealResult {
   menu: string[]
@@ -302,9 +362,9 @@ function registerIpcHandlers(): void {
   // === 급식 API ===
   ipcMain.handle(
     'fetch-meal',
-    async (_event, schoolCode: string, region: string, date: string, apiKey: string): Promise<ParsedMealResult | null> => {
+    async (_event, schoolCode: string, region: string, date: string, apiKey: string, eduCodeDirect: string): Promise<ParsedMealResult | null> => {
       try {
-        const eduCode = REGION_TO_EDU_CODE[region] ?? 'B10'
+        const eduCode = eduCodeDirect || REGION_TO_EDU_CODE[region] || 'B10'
         const key = apiKey || 'SAMPLE'
         const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(key)}&Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&MLSV_YMD=${encodeURIComponent(date)}`
 
@@ -372,6 +432,100 @@ function registerIpcHandlers(): void {
         }
       } catch {
         return null
+      }
+    }
+  )
+
+  // === NEIS 학교 검색 API ===
+  ipcMain.handle(
+    'search-school',
+    async (_event, schoolName: string, apiKey: string): Promise<SchoolSearchResult[]> => {
+      try {
+        const key = apiKey || 'SAMPLE'
+        const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=${encodeURIComponent(key)}&Type=json&pIndex=1&pSize=20&SCHUL_NM=${encodeURIComponent(schoolName)}`
+        const text = await fetchUrl(url)
+        const json = JSON.parse(text) as NeisSchoolResponse
+
+        if (!json.schoolInfo || json.schoolInfo.length < 2) return []
+
+        const rows = json.schoolInfo[1].row
+        return rows.map((row) => ({
+          schoolCode: row.SD_SCHUL_CODE,
+          schoolName: row.SCHUL_NM,
+          eduCode: row.ATPT_OFCDC_SC_CODE,
+          address: row.ORG_RDNMA || '',
+          schoolType: row.SCHUL_KND_SC_NM || ''
+        }))
+      } catch {
+        return []
+      }
+    }
+  )
+
+  // === NEIS 시간표 API ===
+  ipcMain.handle(
+    'fetch-timetable',
+    async (
+      _event,
+      schoolCode: string,
+      eduCode: string,
+      grade: number,
+      classNum: number,
+      apiKey: string,
+      schoolType: string
+    ): Promise<TimetableApiResult[]> => {
+      try {
+        const key = apiKey || 'SAMPLE'
+        const today = new Date()
+        const monday = new Date(today)
+        const dow = today.getDay()
+        monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1))
+
+        // Determine endpoint based on school type
+        let endpoints: string[]
+        if (schoolType === 'elementary') {
+          endpoints = ['elsTimetable']
+        } else if (schoolType === 'high') {
+          endpoints = ['hisTimetable']
+        } else {
+          endpoints = ['misTimetable']
+        }
+
+        const results: TimetableApiResult[] = []
+        for (let i = 0; i < 5; i++) {
+          const date = new Date(monday)
+          date.setDate(monday.getDate() + i)
+          const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
+
+          for (const endpoint of endpoints) {
+            const url = `https://open.neis.go.kr/hub/${endpoint}?KEY=${encodeURIComponent(key)}&Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&ALL_TI_YMD=${dateStr}&GRADE=${grade}&CLASS_NM=${classNum}`
+
+            try {
+              const text = await fetchUrl(url)
+              const json = JSON.parse(text) as Record<string, unknown>
+
+              const rows = parseTimetableResponse(json, endpoint)
+              if (rows.length > 0) {
+                for (const row of rows) {
+                  results.push({
+                    date: row.ALL_TI_YMD,
+                    grade: parseInt(row.GRADE, 10),
+                    classNum: parseInt(row.CLASS_NM, 10),
+                    period: parseInt(row.PERIO, 10),
+                    subject: (row.ITRT_CNTNT || '').trim()
+                  })
+                }
+                break
+              }
+            } catch {
+              continue
+            }
+          }
+        }
+
+        return results
+      } catch {
+        return []
       }
     }
   )

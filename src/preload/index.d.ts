@@ -19,6 +19,22 @@ interface WeatherResult {
   fetchedAt: number
 }
 
+interface SchoolSearchResult {
+  schoolCode: string
+  schoolName: string
+  eduCode: string
+  address: string
+  schoolType: string
+}
+
+interface TimetableApiResult {
+  date: string
+  grade: number
+  classNum: number
+  period: number
+  subject: string
+}
+
 interface WidgetApi {
   toggleAlwaysOnTop: () => Promise<boolean>
   getAlwaysOnTop: () => Promise<boolean>
@@ -29,8 +45,10 @@ interface WidgetApi {
   maximizeWindow: () => Promise<boolean>
   loadStore: (key: string) => Promise<unknown>
   saveStore: (key: string, value: unknown) => Promise<void>
-  fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string) => Promise<MealResult | null>
+  fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string, eduCode: string) => Promise<MealResult | null>
   fetchWeather: (region: string) => Promise<WeatherResult | null>
+  searchSchool: (name: string, apiKey: string) => Promise<SchoolSearchResult[]>
+  fetchTimetable: (schoolCode: string, eduCode: string, grade: number, classNum: number, apiKey: string, schoolType: string) => Promise<TimetableApiResult[]>
   openPath: (filePath: string) => Promise<string>
   showInFolder: (filePath: string) => Promise<void>
   selectFiles: () => Promise<string[]>

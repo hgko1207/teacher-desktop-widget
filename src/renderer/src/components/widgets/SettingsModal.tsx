@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react'
-import { ToggleLeft, ToggleRight, X, Plus, Trash2, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import { ToggleLeft, ToggleRight, X, Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Search, Loader2 } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { THEMES } from '../../config/themes'
-import type { ThemeKey, WidgetKey, SchoolType, LauncherItem, PeriodTime } from '../../types'
+import type { ThemeKey, WidgetKey, SchoolType, LauncherItem, PeriodTime, SchoolSearchResult } from '../../types'
 
 interface SettingsModalProps {
   open: boolean
@@ -62,6 +62,19 @@ const LAUNCHER_COLORS = [
   '#ec4899', '#f97316', '#22c55e', '#06b6d4', '#6366f1'
 ]
 
+const EDU_CODE_TO_REGION: Record<string, string> = {
+  'B10': '서울', 'C10': '부산', 'D10': '대구', 'E10': '인천',
+  'F10': '광주', 'G10': '대전', 'H10': '울산', 'I10': '세종',
+  'J10': '경기', 'K10': '강원', 'M10': '충북', 'N10': '충남',
+  'P10': '전북', 'Q10': '전남', 'R10': '경북', 'S10': '경남', 'T10': '제주'
+}
+
+function neisSchoolTypeToLocal(neisType: string): SchoolType {
+  if (neisType.includes('초등')) return 'elementary'
+  if (neisType.includes('고등')) return 'high'
+  return 'middle'
+}
+
 // -- Shared input style helper --
 function inputStyle(borderColor: string): React.CSSProperties {
   return {
@@ -81,6 +94,37 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
   const settings = useSettingsStore((s) => s.settings)
   const setSettings = useSettingsStore((s) => s.setSettings)
   const [activeTab, setActiveTab] = useState<TabKey>('themeWidget')
+
+  // School search state
+  const [schoolSearchQuery, setSchoolSearchQuery] = useState('')
+  const [schoolSearchResults, setSchoolSearchResults] = useState<SchoolSearchResult[]>([])
+  const [schoolSearching, setSchoolSearching] = useState(false)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const doSchoolSearch = useCallback((query: string): void => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    if (query.trim().length < 2) {
+      setSchoolSearchResults([])
+      setSchoolSearching(false)
+      return
+    }
+    setSchoolSearching(true)
+    searchTimerRef.current = setTimeout(() => {
+      window.api.searchSchool(query.trim(), settings.neisApiKey).then((results) => {
+        setSchoolSearchResults(results)
+        setSchoolSearching(false)
+      }).catch(() => {
+        setSchoolSearchResults([])
+        setSchoolSearching(false)
+      })
+    }, 500)
+  }, [settings.neisApiKey])
+
+  useEffect(() => {
+    return (): void => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [])
 
   // Launcher editor state
   const [newLauncherName, setNewLauncherName] = useState('')
@@ -241,20 +285,107 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
     </>
   )
 
+  const handleSelectSchool = (result: SchoolSearchResult): void => {
+    const mappedRegion = EDU_CODE_TO_REGION[result.eduCode] || settings.region
+    const mappedType = neisSchoolTypeToLocal(result.schoolType)
+    const newMaxGrade = SCHOOL_TYPES.find((s) => s.value === mappedType)?.maxGrade ?? 3
+    setSettings({
+      schoolCode: result.schoolCode,
+      schoolName: result.schoolName,
+      eduCode: result.eduCode,
+      region: mappedRegion,
+      schoolType: mappedType,
+      grade: settings.grade > newMaxGrade ? newMaxGrade : settings.grade
+    })
+    setSchoolSearchQuery('')
+    setSchoolSearchResults([])
+  }
+
   const renderSchool = (): ReactNode => (
     <div className="space-y-4">
-      {/* School name */}
+      {/* School search */}
       <div>
-        <label className="text-sm font-semibold" style={sectionLabel()}>학교 이름</label>
-        <input
-          type="text"
-          className="w-full mt-1.5 px-3 py-2.5 text-sm"
-          style={inputStyle(borderColor)}
-          placeholder="예: 서울중학교"
-          value={settings.schoolName}
-          onChange={(e) => setSettings({ schoolName: e.target.value })}
-        />
+        <label className="text-sm font-semibold" style={sectionLabel()}>학교 검색</label>
+        <div style={{ position: 'relative', marginTop: '6px' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+            <input
+              type="text"
+              className="w-full px-3 py-2.5 text-sm"
+              style={{ ...inputStyle(borderColor), paddingLeft: '32px' }}
+              placeholder="학교 이름으로 검색 (예: 정산중학교)"
+              value={schoolSearchQuery}
+              onChange={(e) => {
+                setSchoolSearchQuery(e.target.value)
+                doSchoolSearch(e.target.value)
+              }}
+            />
+            {schoolSearching && (
+              <Loader2 size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: theme.accent, animation: 'spin 1s linear infinite' }} />
+            )}
+          </div>
+          {schoolSearchResults.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: '#fff',
+              border: `1px solid ${borderColor}`,
+              borderRadius: '10px',
+              marginTop: '4px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              zIndex: 10,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}>
+              {schoolSearchResults.map((result) => (
+                <button
+                  key={`${result.eduCode}-${result.schoolCode}`}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 14px',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid #f3f4f6'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                  onClick={() => handleSelectSchool(result)}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#333' }}>
+                    {result.schoolName}
+                    <span style={{ fontSize: '11px', fontWeight: 500, color: theme.accent, marginLeft: '6px' }}>
+                      {result.schoolType}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                    {result.address}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Selected school info */}
+      {settings.schoolCode && (
+        <div style={{
+          background: theme.bg,
+          border: `1px solid ${theme.border}`,
+          borderRadius: '12px',
+          padding: '12px 14px'
+        }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: theme.primary }}>{settings.schoolName}</div>
+          <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+            학교코드: {settings.schoolCode} | 교육청: {settings.eduCode || '-'}
+          </div>
+        </div>
+      )}
 
       {/* School type */}
       <div>
@@ -348,6 +479,13 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
           onChange={(e) => setSettings({ neisApiKey: e.target.value })}
         />
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: translateY(-50%) rotate(0deg); }
+          to { transform: translateY(-50%) rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 

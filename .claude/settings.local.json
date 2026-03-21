@@ -55,7 +55,9 @@
       "Bash(mv dev.md dev/SKILL.md)",
       "Bash(mv plan.md plan/SKILL.md)",
       "Bash(mv research.md research/SKILL.md)",
-      "Bash(mv simplify.md simplify/SKILL.md)"
+      "Bash(mv simplify.md simplify/SKILL.md)",
+      "WebFetch(domain:github.com)",
+      "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\(typeof l.Loader2, typeof l.Download, typeof l.Search\\)\")"
     ]
   }
 }

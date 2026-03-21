@@ -58,6 +58,7 @@ export function LunchDdayWidget(): ReactNode {
   const schoolCode = useSettingsStore((s) => s.settings.schoolCode)
   const region = useSettingsStore((s) => s.settings.region)
   const neisApiKey = useSettingsStore((s) => s.settings.neisApiKey)
+  const eduCode = useSettingsStore((s) => s.settings.eduCode)
   const theme = THEMES[themeKey]
 
   const [ddays, setDdays] = useState<DdayItem[]>([])
@@ -89,7 +90,7 @@ export function LunchDdayWidget(): ReactNode {
     try {
       const dateStr = dateStringFromOffset(offset)
       const dateYMD = dateYYYYMMDDFromOffset(offset)
-      const result = await window.api.fetchMeal(schoolCode, region, dateYMD, neisApiKey)
+      const result = await window.api.fetchMeal(schoolCode, region, dateYMD, neisApiKey, eduCode)
       if (result && result.menu.length > 0) {
         const mealData: MealData = {
           date: dateStr,
@@ -110,7 +111,7 @@ export function LunchDdayWidget(): ReactNode {
     } finally {
       setFetching(false)
     }
-  }, [schoolCode, region, neisApiKey])
+  }, [schoolCode, region, neisApiKey, eduCode])
 
   const autoFetchMeal = useCallback(async (): Promise<void> => {
     await fetchMealForDate(0)

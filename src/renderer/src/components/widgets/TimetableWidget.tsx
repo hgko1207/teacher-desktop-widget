@@ -1,11 +1,35 @@
-import { type ReactNode, useState } from 'react'
-import { List, MoreHorizontal } from 'lucide-react'
+import { type ReactNode, useState, useCallback } from 'react'
+import { List, MoreHorizontal, Download, Loader2 } from 'lucide-react'
 import { useTimetableStore, getClassColor } from '../../stores/timetableStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useCurrentPeriod } from '../../hooks/useCurrentPeriod'
 import { THEMES } from '../../config/themes'
 import type { DayOfWeek, TimetableEntry } from '../../types'
+
+const SUBJECT_COLORS: string[] = [
+  '#FFD4D4', '#FFE4C8', '#E8D4FF', '#D4E8FF', '#D4FFD4',
+  '#FFF4D4', '#FFD4F0', '#D4FFF4', '#F4FFD4', '#D4DFFF',
+  '#E8FFD4', '#FFE8D4', '#D4FFE8', '#F0D4FF', '#FFFDD4'
+]
+
+function getSubjectColor(subject: string): string {
+  let hash = 0
+  for (let i = 0; i < subject.length; i++) {
+    hash = subject.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length]
+}
+
+function dateStringToDayOfWeek(dateStr: string): DayOfWeek | null {
+  const year = parseInt(dateStr.slice(0, 4), 10)
+  const month = parseInt(dateStr.slice(4, 6), 10) - 1
+  const day = parseInt(dateStr.slice(6, 8), 10)
+  const d = new Date(year, month, day)
+  const dow = d.getDay()
+  const map: Record<number, DayOfWeek> = { 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri' }
+  return map[dow] ?? null
+}
 
 const DAYS: { key: DayOfWeek; label: string; idx: number }[] = [
   { key: 'mon', label: '월', idx: 1 },
@@ -67,14 +91,50 @@ export function TimetableWidget(): ReactNode {
   const entries = useTimetableStore((s) => s.entries)
   const isEditing = useTimetableStore((s) => s.isEditing)
   const setEditing = useTimetableStore((s) => s.setEditing)
+  const setEntries = useTimetableStore((s) => s.setEntries)
   const addEntry = useTimetableStore((s) => s.addEntry)
   const removeEntry = useTimetableStore((s) => s.removeEntry)
   const periodTimes = useSettingsStore((s) => s.settings.periodTimes)
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const schoolCode = useSettingsStore((s) => s.settings.schoolCode)
+  const eduCode = useSettingsStore((s) => s.settings.eduCode)
+  const grade = useSettingsStore((s) => s.settings.grade)
+  const classNum = useSettingsStore((s) => s.settings.classNum)
+  const neisApiKey = useSettingsStore((s) => s.settings.neisApiKey)
+  const schoolType = useSettingsStore((s) => s.settings.schoolType)
   const theme = THEMES[themeKey]
   const { hours, minutes: curMinutes, dayIndex } = useCurrentTime()
   const { currentPeriod } = useCurrentPeriod()
   const [editCell, setEditCell] = useState<{ day: DayOfWeek; period: number } | null>(null)
+  const [fetchingTimetable, setFetchingTimetable] = useState(false)
+
+  const handleFetchTimetable = useCallback(async (): Promise<void> => {
+    if (!schoolCode || !eduCode) return
+    setFetchingTimetable(true)
+    try {
+      const results = await window.api.fetchTimetable(schoolCode, eduCode, grade, classNum, neisApiKey, schoolType)
+      if (results.length > 0) {
+        const newEntries: TimetableEntry[] = []
+        for (const r of results) {
+          const dayKey = dateStringToDayOfWeek(r.date)
+          if (!dayKey) continue
+          newEntries.push({
+            day: dayKey,
+            period: r.period,
+            className: '',
+            subject: r.subject,
+            room: '',
+            color: getSubjectColor(r.subject)
+          })
+        }
+        setEntries(newEntries)
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setFetchingTimetable(false)
+    }
+  }, [schoolCode, eduCode, grade, classNum, neisApiKey, schoolType, setEntries])
 
   const nowMinutes = hours * 60 + curMinutes
 
@@ -106,17 +166,48 @@ export function TimetableWidget(): ReactNode {
           <List size={16} style={{ color: '#6366f1' }} />
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>주간 시간표</span>
         </div>
-        <button
-          onClick={() => setEditing(!isEditing)}
-          className="px-3 py-1 rounded-xl text-xs font-semibold transition-all"
-          style={
-            isEditing
-              ? { background: theme.accent, color: '#fff' }
-              : { color: '#999' }
-          }
-        >
-          {isEditing ? '완료' : <MoreHorizontal size={16} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {schoolCode && eduCode && (
+            <button
+              onClick={handleFetchTimetable}
+              disabled={fetchingTimetable}
+              style={{
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                border: `1px solid ${theme.border}`,
+                background: theme.bg,
+                color: theme.primary,
+                cursor: fetchingTimetable ? 'default' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                opacity: fetchingTimetable ? 0.6 : 1,
+                transition: 'all 0.2s'
+              }}
+              title="NEIS에서 시간표 불러오기"
+            >
+              {fetchingTimetable ? (
+                <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <Download size={12} />
+              )}
+              {fetchingTimetable ? '불러오는 중...' : 'NEIS'}
+            </button>
+          )}
+          <button
+            onClick={() => setEditing(!isEditing)}
+            className="px-3 py-1 rounded-xl text-xs font-semibold transition-all"
+            style={
+              isEditing
+                ? { background: theme.accent, color: '#fff' }
+                : { color: '#999' }
+            }
+          >
+            {isEditing ? '완료' : <MoreHorizontal size={16} />}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">
@@ -235,6 +326,13 @@ export function TimetableWidget(): ReactNode {
           </tbody>
         </table>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }

@@ -129,10 +129,29 @@ export type WidgetKey = 'organizer' | 'clockWeather' | 'currentClass' | 'quotesO
 export type SchoolType = 'elementary' | 'middle' | 'high'
 export type ThemeMode = 'light' | 'dark'
 
+// === NEIS 학교 검색 결과 ===
+export interface SchoolSearchResult {
+  schoolCode: string
+  schoolName: string
+  eduCode: string
+  address: string
+  schoolType: string
+}
+
+// === NEIS 시간표 API 결과 ===
+export interface TimetableApiResult {
+  date: string
+  grade: number
+  classNum: number
+  period: number
+  subject: string
+}
+
 export interface AppSettings {
   schoolCode: string
   schoolName: string
   schoolType: SchoolType
+  eduCode: string
   grade: number
   classNum: number
   region: string

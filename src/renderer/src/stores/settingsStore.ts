@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   schoolCode: '',
   schoolName: '',
   schoolType: 'middle',
+  eduCode: '',
   grade: 1,
   classNum: 1,
   region: '서울',

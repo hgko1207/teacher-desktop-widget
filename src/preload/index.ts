@@ -21,6 +21,22 @@ interface WeatherResult {
   fetchedAt: number
 }
 
+interface SchoolSearchResult {
+  schoolCode: string
+  schoolName: string
+  eduCode: string
+  address: string
+  schoolType: string
+}
+
+interface TimetableApiResult {
+  date: string
+  grade: number
+  classNum: number
+  period: number
+  subject: string
+}
+
 const widgetApi = {
   toggleAlwaysOnTop: (): Promise<boolean> => ipcRenderer.invoke('toggle-always-on-top'),
   getAlwaysOnTop: (): Promise<boolean> => ipcRenderer.invoke('get-always-on-top'),
@@ -32,10 +48,14 @@ const widgetApi = {
   loadStore: (key: string): Promise<unknown> => ipcRenderer.invoke('load-store', key),
   saveStore: (key: string, value: unknown): Promise<void> =>
     ipcRenderer.invoke('save-store', key, value),
-  fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string): Promise<MealResult | null> =>
-    ipcRenderer.invoke('fetch-meal', schoolCode, region, date, apiKey),
+  fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string, eduCode: string): Promise<MealResult | null> =>
+    ipcRenderer.invoke('fetch-meal', schoolCode, region, date, apiKey, eduCode),
   fetchWeather: (region: string): Promise<WeatherResult | null> =>
     ipcRenderer.invoke('fetch-weather', region),
+  searchSchool: (name: string, apiKey: string): Promise<SchoolSearchResult[]> =>
+    ipcRenderer.invoke('search-school', name, apiKey),
+  fetchTimetable: (schoolCode: string, eduCode: string, grade: number, classNum: number, apiKey: string, schoolType: string): Promise<TimetableApiResult[]> =>
+    ipcRenderer.invoke('fetch-timetable', schoolCode, eduCode, grade, classNum, apiKey, schoolType),
   openPath: (filePath: string): Promise<string> => ipcRenderer.invoke('open-path', filePath),
   showInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke('show-in-folder', filePath),
   selectFiles: (): Promise<string[]> => ipcRenderer.invoke('select-files'),
