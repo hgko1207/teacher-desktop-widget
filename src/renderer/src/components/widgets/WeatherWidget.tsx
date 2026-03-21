@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { CloudSun } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import type { WeatherData } from '../../types'
 
@@ -33,22 +34,29 @@ export function WeatherWidget(): ReactNode {
   useEffect(() => { load(); const i = setInterval(load, CACHE_MS); return (): void => clearInterval(i) }, [load])
 
   return (
-    <div className="h-full flex" style={{ ...CARD, padding: '16px' }}>
+    <div className="h-full flex flex-col" style={{ ...CARD, padding: '14px 16px' }}>
+      {/* 타이틀 (좌측 상단 고정) */}
+      <div className="flex items-center gap-1.5 shrink-0" style={{ marginBottom: '8px' }}>
+        <CloudSun size={14} style={{ color: '#60a5fa' }} />
+        <span style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8' }}>오늘 날씨</span>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>{region}</span>
+      </div>
+
       {weather ? (
-        <>
-          {/* 왼쪽: 큰 날씨 아이콘 */}
-          <div className="flex items-center shrink-0" style={{ marginRight: '14px' }}>
-            <span style={{ fontSize: '44px', lineHeight: 1 }}>{weather.icon}</span>
+        <div className="flex-1 flex items-center" style={{ gap: '12px' }}>
+          {/* 아이콘 (좌측, 배경 원 안에) */}
+          <div className="shrink-0 flex items-center justify-center" style={{
+            width: '52px', height: '52px', borderRadius: '14px',
+            background: 'linear-gradient(135deg, #fef3c7, #e0f2fe)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}>
+            <span style={{ fontSize: '30px', lineHeight: 1 }}>{weather.icon}</span>
           </div>
 
-          {/* 중앙: 날씨 정보 */}
-          <div className="flex-1 flex flex-col justify-center min-w-0">
-            <div className="flex items-center gap-2">
-              <span style={{ fontSize: '12px', fontWeight: 500, color: '#94a3b8' }}>오늘 날씨</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>{region}</span>
-            </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span style={{ fontSize: '28px', fontWeight: 900, color: '#1e293b', lineHeight: 1 }}>{weather.temp}°</span>
+          {/* 날씨 정보 (중앙) */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-1.5">
+              <span style={{ fontSize: '26px', fontWeight: 900, color: '#1e293b', lineHeight: 1 }}>{weather.temp}°</span>
               <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>{weather.condition}</span>
             </div>
             <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', fontWeight: 500 }}>
@@ -56,8 +64,8 @@ export function WeatherWidget(): ReactNode {
             </p>
           </div>
 
-          {/* 오른쪽: 미세먼지 (세로 배치) */}
-          <div className="flex flex-col justify-center shrink-0" style={{ gap: '6px', marginLeft: '10px' }}>
+          {/* 미세먼지 (우측 세로) */}
+          <div className="flex flex-col shrink-0" style={{ gap: '5px' }}>
             <span style={{ fontSize: '10px', fontWeight: 600, color: '#16a34a', background: '#f0fdf4', padding: '3px 8px', borderRadius: '8px', border: '1px solid #bbf7d0', whiteSpace: 'nowrap' }}>
               미세 39 보통
             </span>
@@ -65,14 +73,10 @@ export function WeatherWidget(): ReactNode {
               초미세 29 보통
             </span>
           </div>
-        </>
-      ) : error ? (
-        <div className="flex items-center justify-center flex-1">
-          <span style={{ fontSize: '12px', color: '#cbd5e1' }}>날씨 정보 없음</span>
         </div>
       ) : (
-        <div className="flex items-center justify-center flex-1">
-          <span style={{ fontSize: '12px', color: '#cbd5e1' }}>로딩중...</span>
+        <div className="flex-1 flex items-center justify-center">
+          <span style={{ fontSize: '12px', color: '#cbd5e1' }}>{error ? '날씨 정보 없음' : '로딩중...'}</span>
         </div>
       )}
     </div>
