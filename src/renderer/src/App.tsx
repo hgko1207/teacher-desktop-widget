@@ -85,15 +85,15 @@ function App(): ReactNode {
           {/* Bottom row (flex-1): Timetable (300px) | Todo + D-Day + Memo column */}
           <div className="flex-1 flex gap-3 min-h-0">
 
-            {/* Timetable (300px fixed) */}
+            {/* Timetable (1:1 비율) */}
             {visibleWidgets.timetable && (
-              <div style={{ width: '300px' }} className="shrink-0 min-h-0">
+              <div className="min-h-0" style={{ flex: '1 1 0', minWidth: 0 }}>
                 <TimetableWidget />
               </div>
             )}
 
-            {/* Todo + D-Day + Memo vertical stack */}
-            <div className="flex-1 flex flex-col gap-3 min-h-0 min-w-0">
+            {/* Todo + D-Day + Memo vertical stack (1:1 비율) */}
+            <div className="flex flex-col gap-3 min-h-0" style={{ flex: '1 1 0', minWidth: 0 }}>
               {visibleWidgets.todo && (
                 <div className="flex-1 min-h-0"><TodoWidget /></div>
               )}
@@ -112,8 +112,10 @@ function App(): ReactNode {
           {/* Quote card (compact) */}
           {visibleWidgets.quotesOffWork && <QuoteCard />}
 
-          {/* Meal card (tall) */}
-          {visibleWidgets.lunchDday && <MealCard />}
+          {/* Meal card (tall - 급식 메뉴 5~6개 표시) */}
+          {visibleWidgets.lunchDday && (
+            <div className="flex-1 min-h-0"><MealCard /></div>
+          )}
 
           {/* Smart Tools */}
           {visibleWidgets.smartTools && <SmartToolsWidget />}
