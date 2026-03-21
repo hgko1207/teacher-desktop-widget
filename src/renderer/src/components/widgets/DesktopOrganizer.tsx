@@ -284,10 +284,16 @@ export function DesktopOrganizer(): ReactNode {
         border: '1px solid rgba(255,255,255,0.5)'
       }}
     >
+      {/* App title */}
+      <div className="flex items-center gap-2 px-2 pt-1 shrink-0">
+        <div className="w-3 h-3 rounded-full" style={{ background: '#6366f1' }} />
+        <span className="text-sm font-extrabold" style={{ color: '#334155', letterSpacing: '-0.01em' }}>Teacher&apos;s Desk</span>
+      </div>
+
       {/* Guidance header */}
-      <div className="px-2 pt-1 pb-1" style={{ flexShrink: 0 }}>
-        <div className="text-sm font-bold" style={{ color: '#374151' }}>
-          {'📁 바탕화면 빠른 폴더'}
+      <div className="px-2 pb-1 shrink-0">
+        <div className="text-xs font-bold flex items-center gap-1.5" style={{ color: '#374151' }}>
+          <span>📁</span> 바탕화면 빠른 폴더
         </div>
         <div className="text-[10px] mt-0.5" style={{ color: '#9ca3af' }}>
           이 공간에 파일과 폴더를 드래그하여 정리하세요

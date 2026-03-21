@@ -16,7 +16,7 @@ import { useSettingsStore } from './stores/settingsStore'
 import { useTimetableStore } from './stores/timetableStore'
 import { useTodoStore } from './stores/todoStore'
 
-const FONT_SIZES = { small: '13px', medium: '14px', large: '16px' }
+const ZOOM_LEVELS = { small: 0.92, medium: 1, large: 1.08 }
 
 function App(): ReactNode {
   const loadSettings = useSettingsStore((s) => s.loadSettings)
@@ -32,24 +32,26 @@ function App(): ReactNode {
     loadTodos()
   }, [loadSettings, loadTimetable, loadTodos])
 
+  const GAP = '12px'
+
   return (
     <div
       className="flex h-screen w-full overflow-hidden"
       style={{
         background: '#F8F9FB',
-        fontSize: FONT_SIZES[fontSize] ?? '14px'
+        zoom: ZOOM_LEVELS[fontSize] ?? 1
       }}
     >
-      {/* Left sidebar - 320px */}
+      {/* 좌측 사이드바 (Teacher's Desk 통합) */}
       {visibleWidgets.organizer && <DesktopOrganizer />}
 
-      {/* Main area */}
-      <main className="flex-1 h-full flex flex-col gap-4 p-4">
-        {/* Header: launchers + settings */}
+      {/* 메인 영역 */}
+      <main className="flex-1 h-full flex flex-col" style={{ padding: GAP, gap: GAP }}>
+        {/* 헤더: 런처 + 설정 */}
         <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
-        {/* Top info row: 100px, grid-cols-8 */}
-        <div className="grid grid-cols-8 gap-3 shrink-0" style={{ height: '100px' }}>
+        {/* 상단 정보 행 (100px, 8단 그리드) */}
+        <div className="grid grid-cols-8 shrink-0" style={{ gap: GAP, height: '100px' }}>
           {visibleWidgets.clockWeather && (
             <>
               <div className="col-span-2"><ClockWidget /></div>
@@ -64,12 +66,15 @@ function App(): ReactNode {
           )}
         </div>
 
-        {/* Bottom: flex-1, grid-cols-8 */}
-        <div className="flex-1 grid grid-cols-8 gap-3 min-h-0">
+        {/* 하단 메인 (flex-1, 8단 그리드) */}
+        <div className="flex-1 grid grid-cols-8 min-h-0" style={{ gap: GAP }}>
+          {/* 시간표 (3칸) */}
           {visibleWidgets.timetable && (
             <div className="col-span-3"><TimetableWidget /></div>
           )}
-          <div className="col-span-3 flex flex-col gap-3 min-h-0">
+
+          {/* 할일 + D-Day + 메모 (3칸) */}
+          <div className="col-span-3 flex flex-col min-h-0" style={{ gap: GAP }}>
             {visibleWidgets.todo && (
               <div style={{ flex: '3 1 0' }} className="min-h-0"><TodoWidget /></div>
             )}
@@ -78,7 +83,9 @@ function App(): ReactNode {
             )}
             <div style={{ flex: '1.5 1 0' }} className="min-h-0"><MemoWidget /></div>
           </div>
-          <div className="col-span-2 flex flex-col gap-3 min-h-0">
+
+          {/* 스마트도구 + 급식 (2칸) */}
+          <div className="col-span-2 flex flex-col min-h-0" style={{ gap: GAP }}>
             {visibleWidgets.smartTools && (
               <div style={{ flex: '1.2 1 0' }} className="min-h-0"><SmartToolsWidget /></div>
             )}
