@@ -24,7 +24,6 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@tailwindcss/vite": "^4.2.2",
-    "comcigan-parser": "^1.0.0",
     "iconv-lite": "^0.7.2",
     "lucide-react": "^0.577.0",
     "school-kr": "^3.1.2",

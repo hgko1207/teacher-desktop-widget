@@ -1,15 +1,11 @@
 /**
  * Comcigan API - Direct HTTP implementation
- *
- * Replaces comcigan-parser npm package to avoid Electron compatibility issues
- * (undici File not defined error).
- *
- * Uses Node.js built-in http module + iconv-lite for EUC-KR encoding.
+ * No external dependencies except iconv-lite (for EUC-KR encoding)
+ * No cheerio, no undici, no node:sqlite
  */
 
 import * as http from 'http'
 import * as iconv from 'iconv-lite'
-import { load as cheerioLoad } from 'cheerio'
 
 // === Types ===
 
@@ -77,7 +73,6 @@ function httpGet(url: string): Promise<Buffer> {
 export async function initComcigan(): Promise<void> {
   if (state.initialized) return
 
-  // Step 1: Get main page to find frame URL
   const mainBuf = await httpGet('http://xn--s39aj90b0nb2xw6xh.kr/')
   const html = mainBuf.toString()
   const frame = html
@@ -93,7 +88,6 @@ export async function initComcigan(): Promise<void> {
   const url = new URL(frameHref)
   state.baseUrl = url.origin
 
-  // Step 2: Get source page (EUC-KR encoded)
   const pageBuf = await httpGet(frameHref)
   const source = iconv.decode(pageBuf, 'EUC-KR')
 
@@ -104,13 +98,11 @@ export async function initComcigan(): Promise<void> {
     throw new Error('Cannot find identification codes in source')
   }
 
-  // Extract school_ra URL pattern
   const extractSchoolRa = source.substr(idx, 50).replace(' ', '')
   const schoolRa = extractSchoolRa.match(/url:'.(.*?)'/)
   if (!schoolRa) throw new Error('extract code not found')
   state.extractCode = schoolRa[1]
 
-  // Extract sc_data parameters
   const extractScData = source.substr(idx2, 30).replace(' ', '')
   const scData = extractScData.match(/\(.*?\)/)
   if (!scData) throw new Error('sc_data not found')
@@ -158,13 +150,56 @@ export async function searchSchool(keyword: string): Promise<ComciganSearchResul
 
 // === Timetable fetch ===
 
+function parseHtmlTable(htmlStr: string, grade: number, classNum: number): ComciganPeriodItem[][] {
+  const weekdayString = ['일', '월', '화', '수', '목', '금', '토']
+  const timetable: ComciganPeriodItem[][] = []
+
+  // Extract rows with regex instead of cheerio
+  const trMatches = htmlStr.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || []
+
+  for (let timeIdx = 0; timeIdx < trMatches.length; timeIdx++) {
+    const currentTime = timeIdx - 2
+    if (timeIdx <= 1) continue
+
+    const tdMatches = trMatches[timeIdx].match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || []
+
+    for (let weekDayIdx = 0; weekDayIdx < tdMatches.length; weekDayIdx++) {
+      const currentWeekDay = weekDayIdx - 1
+      if (weekDayIdx === 0 || weekDayIdx === 6) continue
+
+      if (!timetable[currentWeekDay]) {
+        timetable[currentWeekDay] = []
+      }
+
+      // Extract text content, strip HTML tags
+      const cellHtml = tdMatches[weekDayIdx].replace(/<td[^>]*>/, '').replace(/<\/td>/, '')
+      // Split by <br> to get subject and teacher
+      const parts = cellHtml.split(/<br\s*\/?>/i).map((p: string) => p.replace(/<[^>]*>/g, '').trim())
+
+      const subject = parts[0] || ''
+      const teacher = parts.length > 1 ? parts[parts.length - 1] : ''
+
+      timetable[currentWeekDay][currentTime] = {
+        grade,
+        class: classNum,
+        weekday: weekDayIdx - 1,
+        weekdayString: weekdayString[weekDayIdx],
+        classTime: currentTime + 1,
+        teacher,
+        subject
+      }
+    }
+  }
+
+  return timetable
+}
+
 export async function fetchTimetable(
   schoolCode: number,
   maxGrade: number
 ): Promise<ComciganTimetableData> {
   await initComcigan()
 
-  // Build data URL (same logic as comcigan-parser _getData)
   const da1 = '0'
   const s7 = state.scData[0] + schoolCode
   const sc3 =
@@ -200,14 +235,10 @@ export async function fetchTimetable(
   // Extract data processing function name
   const funcNameMatch = script.match(/function 자료[^(]*/gm)
   if (!funcNameMatch) throw new Error('data function not found')
-  const functioName = funcNameMatch[0].replace(/\+s/, '').replace('function', '')
+  const functionName = funcNameMatch[0].replace(/\+s/, '').replace('function', '')
 
-  // Class counts per grade
   const classCount = resultJson['\uD559\uAE09\uC218']
 
-  const weekdayString = ['일', '월', '화', '수', '목', '금', '토']
-
-  // Build timetable data
   const timetableData: ComciganTimetableData = {}
 
   for (let grade = 1; grade <= maxGrade; grade++) {
@@ -217,45 +248,13 @@ export async function fetchTimetable(
 
     for (let classNum = 1; classNum <= classCount[grade]; classNum++) {
       const args = [jsonString, grade, classNum]
-      const call = functioName + '(' + args.join(',') + ')'
+      const call = functionName + '(' + args.join(',') + ')'
       const evalScript = script + '\n\n' + call
 
       // eslint-disable-next-line no-eval
       const res = eval(evalScript) as string
 
-      // Parse HTML table output
-      const $ = cheerioLoad(res)
-      const timetable: ComciganPeriodItem[][] = []
-
-      $('tr').each((timeIdx, trEl) => {
-        const currentTime = timeIdx - 2
-        if (timeIdx <= 1) return
-
-        $(trEl)
-          .find('td')
-          .each((weekDayIdx, tdEl) => {
-            const currentWeekDay = weekDayIdx - 1
-            if (weekDayIdx === 0 || weekDayIdx === 6) return
-
-            if (!timetable[currentWeekDay]) {
-              timetable[currentWeekDay] = []
-            }
-
-            const subject = $(tdEl).contents().first().text()
-            const teacher = $(tdEl).contents().last().text()
-            timetable[currentWeekDay][currentTime] = {
-              grade,
-              class: classNum,
-              weekday: weekDayIdx - 1,
-              weekdayString: weekdayString[weekDayIdx],
-              classTime: currentTime + 1,
-              teacher,
-              subject
-            }
-          })
-      })
-
-      timetableData[grade][classNum] = timetable
+      timetableData[grade][classNum] = parseHtmlTable(res, grade, classNum)
     }
   }
 
