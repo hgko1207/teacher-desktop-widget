@@ -63,7 +63,13 @@
       "Bash(node -e \"const T = require\\(''comcigan-parser''\\); const t = new T\\(\\); t.init\\(\\).then\\(\\(\\) => t.search\\(''정산''\\)\\).then\\(r => console.log\\(JSON.stringify\\(r, null, 2\\)\\)\\).catch\\(e => console.log\\(''ERROR:'', e.message\\)\\)\")",
       "Bash(curl -s \"https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=SAMPLE&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=3380078&MLSV_YMD=20260322\")",
       "Bash(curl -s \"https://schoolmenuw.moe.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=3380078&MLSV_YMD=202603&Type=json\")",
-      "Bash(npx electron-vite:*)"
+      "Bash(npx electron-vite:*)",
+      "Bash(node -e \"try{require\\(''iconv-lite''\\);console.log\\(''iconv-lite OK''\\)}catch\\(e\\){console.log\\(''iconv-lite missing''\\)}\")",
+      "Bash(node -e \"try{require\\(''cheerio''\\);console.log\\(''cheerio OK''\\)}catch\\(e\\){console.log\\(''cheerio missing''\\)}\")",
+      "Bash(node -e \"const c = require\\(''cheerio''\\); console.log\\(typeof c.load\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''cheerio/package.json''\\).version\\)\")",
+      "Bash(node -e \"const p = require\\(''cheerio/package.json''\\); console.log\\(p.types || p.typings || ''none''\\)\")",
+      "Bash(node -e \"const c = require\\(''cheerio''\\); const dol = c.load\\(''<table><tr><td>a</td></tr></table>''\\); dol\\(''tr''\\).each\\(\\(i, el\\) => { console.log\\(typeof i, typeof el\\); console.log\\(dol\\(el\\).find\\(''td''\\).length\\) }\\)\")"
     ]
   }
 }

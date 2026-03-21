@@ -2,6 +2,11 @@ import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, ne
 import { statSync } from 'fs'
 import { join } from 'path'
 import { initStore, loadStore, saveStore } from './store'
+import {
+  searchSchool as comciganSearch,
+  fetchTimetable as comciganFetchTimetable
+} from './comcigan'
+import type { ComciganSearchResult, ComciganTimetableData } from './comcigan'
 
 // === 교육청 코드 매핑 ===
 const REGION_TO_EDU_CODE: Record<string, string> = {
@@ -62,13 +67,6 @@ async function fetchUrl(url: string): Promise<string> {
 }
 
 // === 컴시간 타입 ===
-interface ComciganSearchItem {
-  _: number
-  region: string
-  name: string
-  code: number
-}
-
 interface ComciganSchoolResult {
   schoolCode: string
   schoolName: string
@@ -78,16 +76,6 @@ interface ComciganSchoolResult {
   address: string
   schoolType: string
 }
-
-interface ComciganPeriodItem {
-  subject: string
-  teacher: string
-  classTime: number
-  weekday: number
-  weekdayString: string
-}
-
-type ComciganTimetableData = Record<number, Record<number, ComciganPeriodItem[][]>>
 
 interface ComciganTimetableItem {
   day: string
@@ -453,16 +441,9 @@ function registerIpcHandlers(): void {
     'search-school',
     async (_event, schoolName: string): Promise<ComciganSchoolResult[]> => {
       try {
-        // 1. 컴시간 검색 (시간표용)
+        // 1. 컴시간 검색 (시간표용) - direct HTTP API
         console.log('[search-school] searching for:', schoolName)
-        console.log('[search-school] appPath:', app.getAppPath())
-        const comciganModulePath = join(app.getAppPath(), 'node_modules', 'comcigan-parser')
-        const Timetable = require(comciganModulePath)
-        console.log('[search-school] comcigan loaded')
-        const timetable = new Timetable()
-        await timetable.init()
-        console.log('[search-school] comcigan init done')
-        const comciganResults: ComciganSearchItem[] = await timetable.search(schoolName)
+        const comciganResults: ComciganSearchResult[] = await comciganSearch(schoolName)
         console.log('[search-school] comcigan results:', comciganResults.length)
 
         // 2. 나이스 검색 (급식용 - KEY 없이)
@@ -510,12 +491,7 @@ function registerIpcHandlers(): void {
     'fetch-timetable-comcigan',
     async (_event, comciganCode: number, grade: number, classNum: number): Promise<ComciganTimetableItem[]> => {
       try {
-        const comciganModulePath = join(app.getAppPath(), 'node_modules', 'comcigan-parser')
-        const Timetable = require(comciganModulePath)
-        const timetable = new Timetable()
-        await timetable.init({ maxGrade: 6 })
-        timetable.setSchool(comciganCode)
-        const data: ComciganTimetableData = await timetable.getTimetable()
+        const data: ComciganTimetableData = await comciganFetchTimetable(comciganCode, 6)
 
         const DAY_MAP: Record<number, string> = { 0: 'mon', 1: 'tue', 2: 'wed', 3: 'thu', 4: 'fri' }
         const results: ComciganTimetableItem[] = []
