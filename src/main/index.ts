@@ -454,7 +454,7 @@ function registerIpcHandlers(): void {
     async (_event, schoolName: string): Promise<ComciganSchoolResult[]> => {
       try {
         // 1. 컴시간 검색 (시간표용)
-        const Timetable = require('comcigan-parser')
+        const Timetable = require(join(__dirname, '../../node_modules/comcigan-parser'))
         const timetable = new Timetable()
         await timetable.init()
         const comciganResults: ComciganSearchItem[] = await timetable.search(schoolName)
@@ -503,7 +503,7 @@ function registerIpcHandlers(): void {
     'fetch-timetable-comcigan',
     async (_event, comciganCode: number, grade: number, classNum: number): Promise<ComciganTimetableItem[]> => {
       try {
-        const Timetable = require('comcigan-parser')
+        const Timetable = require(join(__dirname, '../../node_modules/comcigan-parser'))
         const timetable = new Timetable()
         await timetable.init({ maxGrade: 6 })
         timetable.setSchool(comciganCode)
