@@ -129,13 +129,20 @@ export type WidgetKey = 'organizer' | 'clockWeather' | 'currentClass' | 'quotesO
 export type SchoolType = 'elementary' | 'middle' | 'high'
 export type ThemeMode = 'light' | 'dark'
 
-// === NEIS 학교 검색 결과 ===
+// === 학교 검색 결과 (컴시간) ===
 export interface SchoolSearchResult {
   schoolCode: string
   schoolName: string
-  eduCode: string
-  address: string
-  schoolType: string
+  region: string
+  comciganCode: number
+}
+
+// === 컴시간 시간표 결과 ===
+export interface ComciganTimetableResult {
+  day: string
+  period: number
+  subject: string
+  teacher: string
 }
 
 // === NEIS 시간표 API 결과 ===
@@ -152,6 +159,7 @@ export interface AppSettings {
   schoolName: string
   schoolType: SchoolType
   eduCode: string
+  comciganCode: number
   grade: number
   classNum: number
   region: string

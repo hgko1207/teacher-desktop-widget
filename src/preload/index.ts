@@ -24,9 +24,15 @@ interface WeatherResult {
 interface SchoolSearchResult {
   schoolCode: string
   schoolName: string
-  eduCode: string
-  address: string
-  schoolType: string
+  region: string
+  comciganCode: number
+}
+
+interface ComciganTimetableResult {
+  day: string
+  period: number
+  subject: string
+  teacher: string
 }
 
 interface TimetableApiResult {
@@ -52,8 +58,10 @@ const widgetApi = {
     ipcRenderer.invoke('fetch-meal', schoolCode, region, date, apiKey, eduCode),
   fetchWeather: (region: string): Promise<WeatherResult | null> =>
     ipcRenderer.invoke('fetch-weather', region),
-  searchSchool: (name: string, apiKey: string): Promise<SchoolSearchResult[]> =>
-    ipcRenderer.invoke('search-school', name, apiKey),
+  searchSchool: (name: string): Promise<SchoolSearchResult[]> =>
+    ipcRenderer.invoke('search-school', name),
+  fetchTimetableComcigan: (comciganCode: number, grade: number, classNum: number): Promise<ComciganTimetableResult[]> =>
+    ipcRenderer.invoke('fetch-timetable-comcigan', comciganCode, grade, classNum),
   fetchTimetable: (schoolCode: string, eduCode: string, grade: number, classNum: number, apiKey: string, schoolType: string): Promise<TimetableApiResult[]> =>
     ipcRenderer.invoke('fetch-timetable', schoolCode, eduCode, grade, classNum, apiKey, schoolType),
   openPath: (filePath: string): Promise<string> => ipcRenderer.invoke('open-path', filePath),

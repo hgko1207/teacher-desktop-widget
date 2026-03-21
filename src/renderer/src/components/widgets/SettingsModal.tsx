@@ -2,7 +2,14 @@ import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 import { ToggleLeft, ToggleRight, X, Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, Search, Loader2 } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { THEMES } from '../../config/themes'
-import type { ThemeKey, WidgetKey, SchoolType, LauncherItem, PeriodTime, SchoolSearchResult } from '../../types'
+import type { ThemeKey, WidgetKey, SchoolType, LauncherItem, PeriodTime } from '../../types'
+
+interface ComciganSearchResult {
+  schoolCode: string
+  schoolName: string
+  region: string
+  comciganCode: number
+}
 
 interface SettingsModalProps {
   open: boolean
@@ -62,18 +69,6 @@ const LAUNCHER_COLORS = [
   '#ec4899', '#f97316', '#22c55e', '#06b6d4', '#6366f1'
 ]
 
-const EDU_CODE_TO_REGION: Record<string, string> = {
-  'B10': '서울', 'C10': '부산', 'D10': '대구', 'E10': '인천',
-  'F10': '광주', 'G10': '대전', 'H10': '울산', 'I10': '세종',
-  'J10': '경기', 'K10': '강원', 'M10': '충북', 'N10': '충남',
-  'P10': '전북', 'Q10': '전남', 'R10': '경북', 'S10': '경남', 'T10': '제주'
-}
-
-function neisSchoolTypeToLocal(neisType: string): SchoolType {
-  if (neisType.includes('초등')) return 'elementary'
-  if (neisType.includes('고등')) return 'high'
-  return 'middle'
-}
 
 // -- Shared input style helper --
 function inputStyle(borderColor: string): React.CSSProperties {
@@ -97,7 +92,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
 
   // School search state
   const [schoolSearchQuery, setSchoolSearchQuery] = useState('')
-  const [schoolSearchResults, setSchoolSearchResults] = useState<SchoolSearchResult[]>([])
+  const [schoolSearchResults, setSchoolSearchResults] = useState<ComciganSearchResult[]>([])
   const [schoolSearching, setSchoolSearching] = useState(false)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -110,15 +105,15 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
     }
     setSchoolSearching(true)
     searchTimerRef.current = setTimeout(() => {
-      window.api.searchSchool(query.trim(), settings.neisApiKey).then((results) => {
-        setSchoolSearchResults(results)
+      window.api.searchSchool(query.trim()).then((results) => {
+        setSchoolSearchResults(results as ComciganSearchResult[])
         setSchoolSearching(false)
       }).catch(() => {
         setSchoolSearchResults([])
         setSchoolSearching(false)
       })
     }, 500)
-  }, [settings.neisApiKey])
+  }, [])
 
   useEffect(() => {
     return (): void => {
@@ -285,17 +280,12 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
     </>
   )
 
-  const handleSelectSchool = (result: SchoolSearchResult): void => {
-    const mappedRegion = EDU_CODE_TO_REGION[result.eduCode] || settings.region
-    const mappedType = neisSchoolTypeToLocal(result.schoolType)
-    const newMaxGrade = SCHOOL_TYPES.find((s) => s.value === mappedType)?.maxGrade ?? 3
+  const handleSelectSchool = (result: ComciganSearchResult): void => {
     setSettings({
       schoolCode: result.schoolCode,
       schoolName: result.schoolName,
-      eduCode: result.eduCode,
-      region: mappedRegion,
-      schoolType: mappedType,
-      grade: settings.grade > newMaxGrade ? newMaxGrade : settings.grade
+      comciganCode: result.comciganCode,
+      region: result.region || settings.region
     })
     setSchoolSearchQuery('')
     setSchoolSearchResults([])
@@ -341,7 +331,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
             }}>
               {schoolSearchResults.map((result) => (
                 <button
-                  key={`${result.eduCode}-${result.schoolCode}`}
+                  key={`${result.comciganCode}-${result.schoolCode}`}
                   style={{
                     display: 'block',
                     width: '100%',
@@ -359,11 +349,8 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#333' }}>
                     {result.schoolName}
                     <span style={{ fontSize: '11px', fontWeight: 500, color: theme.accent, marginLeft: '6px' }}>
-                      {result.schoolType}
+                      {result.region}
                     </span>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                    {result.address}
                   </div>
                 </button>
               ))}
@@ -382,7 +369,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
         }}>
           <div style={{ fontSize: '13px', fontWeight: 700, color: theme.primary }}>{settings.schoolName}</div>
           <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
-            학교코드: {settings.schoolCode} | 교육청: {settings.eduCode || '-'}
+            컴시간코드: {settings.comciganCode || '-'} | 지역: {settings.region || '-'}
           </div>
         </div>
       )}

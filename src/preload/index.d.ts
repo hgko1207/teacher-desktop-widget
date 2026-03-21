@@ -22,9 +22,15 @@ interface WeatherResult {
 interface SchoolSearchResult {
   schoolCode: string
   schoolName: string
-  eduCode: string
-  address: string
-  schoolType: string
+  region: string
+  comciganCode: number
+}
+
+interface ComciganTimetableResult {
+  day: string
+  period: number
+  subject: string
+  teacher: string
 }
 
 interface TimetableApiResult {
@@ -47,7 +53,8 @@ interface WidgetApi {
   saveStore: (key: string, value: unknown) => Promise<void>
   fetchMeal: (schoolCode: string, region: string, date: string, apiKey: string, eduCode: string) => Promise<MealResult | null>
   fetchWeather: (region: string) => Promise<WeatherResult | null>
-  searchSchool: (name: string, apiKey: string) => Promise<SchoolSearchResult[]>
+  searchSchool: (name: string) => Promise<SchoolSearchResult[]>
+  fetchTimetableComcigan: (comciganCode: number, grade: number, classNum: number) => Promise<ComciganTimetableResult[]>
   fetchTimetable: (schoolCode: string, eduCode: string, grade: number, classNum: number, apiKey: string, schoolType: string) => Promise<TimetableApiResult[]>
   openPath: (filePath: string) => Promise<string>
   showInFolder: (filePath: string) => Promise<void>

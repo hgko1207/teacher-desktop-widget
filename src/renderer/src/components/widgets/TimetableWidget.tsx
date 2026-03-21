@@ -21,15 +21,6 @@ function getSubjectColor(subject: string): string {
   return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length]
 }
 
-function dateStringToDayOfWeek(dateStr: string): DayOfWeek | null {
-  const year = parseInt(dateStr.slice(0, 4), 10)
-  const month = parseInt(dateStr.slice(4, 6), 10) - 1
-  const day = parseInt(dateStr.slice(6, 8), 10)
-  const d = new Date(year, month, day)
-  const dow = d.getDay()
-  const map: Record<number, DayOfWeek> = { 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri' }
-  return map[dow] ?? null
-}
 
 const DAYS: { key: DayOfWeek; label: string; idx: number }[] = [
   { key: 'mon', label: '월', idx: 1 },
@@ -96,12 +87,9 @@ export function TimetableWidget(): ReactNode {
   const removeEntry = useTimetableStore((s) => s.removeEntry)
   const periodTimes = useSettingsStore((s) => s.settings.periodTimes)
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
-  const schoolCode = useSettingsStore((s) => s.settings.schoolCode)
-  const eduCode = useSettingsStore((s) => s.settings.eduCode)
+  const comciganCode = useSettingsStore((s) => s.settings.comciganCode)
   const grade = useSettingsStore((s) => s.settings.grade)
   const classNum = useSettingsStore((s) => s.settings.classNum)
-  const neisApiKey = useSettingsStore((s) => s.settings.neisApiKey)
-  const schoolType = useSettingsStore((s) => s.settings.schoolType)
   const theme = THEMES[themeKey]
   const { hours, minutes: curMinutes, dayIndex } = useCurrentTime()
   const { currentPeriod } = useCurrentPeriod()
@@ -109,23 +97,23 @@ export function TimetableWidget(): ReactNode {
   const [fetchingTimetable, setFetchingTimetable] = useState(false)
 
   const handleFetchTimetable = useCallback(async (): Promise<void> => {
-    if (!schoolCode || !eduCode) return
+    if (!comciganCode) return
     setFetchingTimetable(true)
     try {
-      const results = await window.api.fetchTimetable(schoolCode, eduCode, grade, classNum, neisApiKey, schoolType)
+      const results = await window.api.fetchTimetableComcigan(comciganCode, grade, classNum)
       if (results.length > 0) {
         const newEntries: TimetableEntry[] = []
         for (const r of results) {
-          const dayKey = dateStringToDayOfWeek(r.date)
-          if (!dayKey) continue
-          newEntries.push({
-            day: dayKey,
-            period: r.period,
-            className: '',
-            subject: r.subject,
-            room: '',
-            color: getSubjectColor(r.subject)
-          })
+          if (r.day === 'mon' || r.day === 'tue' || r.day === 'wed' || r.day === 'thu' || r.day === 'fri') {
+            newEntries.push({
+              day: r.day,
+              period: r.period,
+              className: '',
+              subject: r.subject,
+              room: r.teacher,
+              color: getSubjectColor(r.subject)
+            })
+          }
         }
         setEntries(newEntries)
       }
@@ -134,7 +122,7 @@ export function TimetableWidget(): ReactNode {
     } finally {
       setFetchingTimetable(false)
     }
-  }, [schoolCode, eduCode, grade, classNum, neisApiKey, schoolType, setEntries])
+  }, [comciganCode, grade, classNum, setEntries])
 
   const nowMinutes = hours * 60 + curMinutes
 
@@ -167,7 +155,7 @@ export function TimetableWidget(): ReactNode {
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>주간 시간표</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {schoolCode && eduCode && (
+          {comciganCode > 0 && (
             <button
               onClick={handleFetchTimetable}
               disabled={fetchingTimetable}
@@ -186,14 +174,14 @@ export function TimetableWidget(): ReactNode {
                 opacity: fetchingTimetable ? 0.6 : 1,
                 transition: 'all 0.2s'
               }}
-              title="NEIS에서 시간표 불러오기"
+              title="컴시간에서 시간표 불러오기"
             >
               {fetchingTimetable ? (
                 <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
               ) : (
                 <Download size={12} />
               )}
-              {fetchingTimetable ? '불러오는 중...' : 'NEIS'}
+              {fetchingTimetable ? '불러오는 중...' : '컴시간'}
             </button>
           )}
           <button

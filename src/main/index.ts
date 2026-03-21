@@ -61,13 +61,36 @@ async function fetchUrl(url: string): Promise<string> {
   return response.text()
 }
 
-// === NEIS 학교 검색 결과 ===
-interface SchoolSearchResult {
+// === 컴시간 타입 ===
+interface ComciganSearchItem {
+  _: number
+  region: string
+  name: string
+  code: number
+}
+
+interface ComciganSchoolResult {
   schoolCode: string
   schoolName: string
-  eduCode: string
-  address: string
-  schoolType: string
+  region: string
+  comciganCode: number
+}
+
+interface ComciganPeriodItem {
+  subject: string
+  teacher: string
+  classTime: number
+  weekday: number
+  weekdayString: string
+}
+
+type ComciganTimetableData = Record<number, Record<number, ComciganPeriodItem[][]>>
+
+interface ComciganTimetableItem {
+  day: string
+  period: number
+  subject: string
+  teacher: string
 }
 
 // === NEIS 시간표 API 결과 ===
@@ -77,23 +100,6 @@ interface TimetableApiResult {
   classNum: number
   period: number
   subject: string
-}
-
-// === NEIS 학교 검색 API 응답 ===
-interface NeisSchoolRow {
-  SD_SCHUL_CODE: string
-  SCHUL_NM: string
-  ATPT_OFCDC_SC_CODE: string
-  ORG_RDNMA: string
-  SCHUL_KND_SC_NM: string
-}
-
-interface NeisSchoolResponse {
-  schoolInfo?: [
-    { head: NeisHead[] },
-    { row: NeisSchoolRow[] }
-  ]
-  RESULT?: { CODE: string; MESSAGE: string }
 }
 
 // === NEIS 시간표 API 응답 ===
@@ -436,26 +442,59 @@ function registerIpcHandlers(): void {
     }
   )
 
-  // === NEIS 학교 검색 API ===
+  // === 컴시간 학교 검색 ===
   ipcMain.handle(
     'search-school',
-    async (_event, schoolName: string, apiKey: string): Promise<SchoolSearchResult[]> => {
+    async (_event, schoolName: string): Promise<ComciganSchoolResult[]> => {
       try {
-        const key = apiKey || 'SAMPLE'
-        const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=${encodeURIComponent(key)}&Type=json&pIndex=1&pSize=20&SCHUL_NM=${encodeURIComponent(schoolName)}`
-        const text = await fetchUrl(url)
-        const json = JSON.parse(text) as NeisSchoolResponse
-
-        if (!json.schoolInfo || json.schoolInfo.length < 2) return []
-
-        const rows = json.schoolInfo[1].row
-        return rows.map((row) => ({
-          schoolCode: row.SD_SCHUL_CODE,
-          schoolName: row.SCHUL_NM,
-          eduCode: row.ATPT_OFCDC_SC_CODE,
-          address: row.ORG_RDNMA || '',
-          schoolType: row.SCHUL_KND_SC_NM || ''
+        const Timetable = require('comcigan-parser')
+        const timetable = new Timetable()
+        await timetable.init()
+        const results: ComciganSearchItem[] = timetable.search(schoolName)
+        return results.map((r) => ({
+          schoolCode: String(r.code),
+          schoolName: r.name,
+          region: r.region,
+          comciganCode: r.code
         }))
+      } catch {
+        return []
+      }
+    }
+  )
+
+  // === 컴시간 시간표 불러오기 ===
+  ipcMain.handle(
+    'fetch-timetable-comcigan',
+    async (_event, comciganCode: number, grade: number, classNum: number): Promise<ComciganTimetableItem[]> => {
+      try {
+        const Timetable = require('comcigan-parser')
+        const timetable = new Timetable()
+        await timetable.init({ maxGrade: 6 })
+        timetable.setSchool(comciganCode)
+        const data: ComciganTimetableData = await timetable.getTimetable()
+
+        const DAY_MAP: Record<number, string> = { 0: 'mon', 1: 'tue', 2: 'wed', 3: 'thu', 4: 'fri' }
+        const results: ComciganTimetableItem[] = []
+
+        const classDays = data[grade]?.[classNum]
+        if (!classDays) return []
+
+        for (let dayIdx = 0; dayIdx < 5; dayIdx++) {
+          const periods = classDays[dayIdx] ?? []
+          for (const item of periods) {
+            if (item.subject && item.subject.trim()) {
+              results.push({
+                day: DAY_MAP[dayIdx],
+                period: item.classTime,
+                subject: item.subject,
+                teacher: item.teacher || ''
+              })
+            }
+          }
+        }
+
+        return results
       } catch {
         return []
       }
