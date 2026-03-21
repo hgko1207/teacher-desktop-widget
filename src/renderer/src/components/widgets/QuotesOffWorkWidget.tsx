@@ -14,11 +14,18 @@ const QUOTES = [
   '힘든 날도 있지만, 보람찬 날이 더 많을 거예요.'
 ]
 
+const CARD_STYLE = {
+  background: 'rgba(255,255,255,0.8)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(226,232,240,0.6)',
+  borderRadius: '24px',
+  boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+} as const
+
 export function QuotesOffWorkWidget(): ReactNode {
   const { hours, minutes } = useCurrentTime()
   const offWorkTime = useSettingsStore((s) => s.settings.offWorkTime)
   const [quoteIndex] = useState(() => Math.floor(Math.random() * QUOTES.length))
-
   const [offWorkText, setOffWorkText] = useState('')
 
   useEffect(() => {
@@ -41,38 +48,19 @@ export function QuotesOffWorkWidget(): ReactNode {
   }, [hours, minutes, offWorkTime])
 
   return (
-    <div
-      className="h-full p-4 flex items-center gap-4"
-      style={{
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(12px)',
-        borderRadius: '20px',
-        border: '1px solid rgba(255,255,255,0.6)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-      }}
-    >
-      {/* Off-work timer */}
-      <div className="flex items-center gap-3 shrink-0">
-        <Coffee size={24} style={{ color: '#f59e0b' }} />
+    <div className="h-full p-4 flex flex-col justify-center" style={CARD_STYLE}>
+      <div className="flex justify-between items-start mb-2">
         <div>
-          <span className="text-[10px] font-medium" style={{ color: '#888' }}>
-            행복한 퇴근까지
-          </span>
-          <div className="text-lg font-bold" style={{ color: '#1a1a2e' }}>
-            {offWorkText}
-          </div>
+          <p className="flex items-center gap-1" style={{ fontSize: '11px', color: '#94a3b8' }}>
+            <Coffee size={12} /> 행복한 퇴근까지
+          </p>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#334155' }}>{offWorkText}</div>
         </div>
       </div>
-
-      {/* Divider */}
-      <div style={{ width: '1px', height: '40px', background: '#e5e7eb' }} />
-
-      {/* Quote */}
-      <div className="flex items-center gap-2 min-w-0">
-        <Heart size={16} style={{ color: '#ec4899' }} className="shrink-0" />
-        <span className="text-xs font-medium leading-relaxed" style={{ color: '#555' }}>
-          {QUOTES[quoteIndex]}
-        </span>
+      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
+        <p className="flex items-center gap-1" style={{ fontSize: '10px', color: '#64748b' }}>
+          <Heart size={10} style={{ color: '#fb7185' }} /> {QUOTES[quoteIndex]}
+        </p>
       </div>
     </div>
   )

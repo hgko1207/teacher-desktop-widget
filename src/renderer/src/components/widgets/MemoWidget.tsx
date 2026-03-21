@@ -39,10 +39,11 @@ export function MemoWidget(): ReactNode {
     <div
       className="h-full flex flex-col p-3"
       style={{
-        background: 'linear-gradient(145deg, #fefce8, #fef9c3)',
-        borderRadius: '20px',
-        border: '1px solid rgba(250,204,21,0.3)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+        background: 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(226,232,240,0.6)',
+        borderRadius: '24px',
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
       }}
     >
       <div className="flex items-center gap-1.5 mb-2 shrink-0">

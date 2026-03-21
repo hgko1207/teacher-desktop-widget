@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { Utensils, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { THEMES } from '../../config/themes'
 import { MealEditModal } from '../modals/MealEditModal'
 import type { MealData } from '../../types'
 
@@ -34,11 +33,9 @@ function formatDateLabel(offset: number): string {
 }
 
 export function MealCard(): ReactNode {
-  const themeKey = useSettingsStore((s) => s.settings.themeKey)
   const schoolCode = useSettingsStore((s) => s.settings.schoolCode)
   const region = useSettingsStore((s) => s.settings.region)
   const neisApiKey = useSettingsStore((s) => s.settings.neisApiKey)
-  const theme = THEMES[themeKey]
 
   const [meal, setMeal] = useState<MealData | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -127,36 +124,23 @@ export function MealCard(): ReactNode {
   return (
     <>
       <div
-        className="flex-1 p-3 flex flex-col relative overflow-hidden min-h-0"
+        className="h-full flex flex-col overflow-hidden"
         style={{
-          background: `linear-gradient(145deg, ${theme.bg}, #ffffff)`,
-          borderRadius: '20px',
-          border: `1px solid ${theme.border}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          background: 'linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,247,237,0.3))',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(226,232,240,0.6)',
+          borderRadius: '24px',
+          boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
+          padding: '16px',
           cursor: 'pointer'
         }}
         onClick={() => setModalOpen(true)}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-2 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.8)' }}>
-              <Utensils size={12} style={{ color: theme.primary }} />
-            </div>
-            <span className="text-xs font-bold" style={{ color: theme.primary }}>급식</span>
-            {meal && (
-              <span
-                className="text-[8px] font-bold px-1 py-0.5 rounded-full"
-                style={{
-                  background: meal.source === 'auto' ? '#dbeafe' : '#fef3c7',
-                  color: meal.source === 'auto' ? '#2563eb' : '#d97706'
-                }}
-              >
-                {meal.source === 'auto' ? '자동' : '수동'}
-              </span>
-            )}
-          </div>
+        <div className="flex justify-between items-center mb-2 shrink-0">
+          <h3 className="flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
+            <Utensils size={16} style={{ color: '#fb923c' }} /> 오늘의 급식
+          </h3>
           <div className="flex items-center gap-1">
             {schoolCode && (
               <button
@@ -179,18 +163,13 @@ export function MealCard(): ReactNode {
                 <RefreshCw
                   size={10}
                   style={{
-                    color: theme.primary,
+                    color: '#fb923c',
                     animation: fetching ? 'spin 1s linear infinite' : 'none'
                   }}
                 />
               </button>
             )}
-            {meal?.calories && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.8)', color: theme.primary }}>
-                {meal.calories}
-              </span>
-            )}
+            <span style={{ fontSize: '10px', fontWeight: 500, color: '#ea580c', background: '#fed7aa', padding: '2px 8px', borderRadius: '9999px' }}>중식</span>
           </div>
         </div>
 
@@ -199,7 +178,7 @@ export function MealCard(): ReactNode {
           <button
             onClick={handleMealPrev}
             style={{
-              background: 'rgba(255,255,255,0.55)',
+              background: 'rgba(255,247,237,0.6)',
               border: 'none',
               borderRadius: '6px',
               width: '22px',
@@ -216,7 +195,7 @@ export function MealCard(): ReactNode {
             onClick={handleMealToday}
             className="text-[11px] font-semibold px-2 py-0.5 rounded-md"
             style={{
-              background: mealDateOffset === 0 ? theme.accent : 'rgba(255,255,255,0.55)',
+              background: mealDateOffset === 0 ? '#fb923c' : 'rgba(255,247,237,0.6)',
               color: mealDateOffset === 0 ? '#fff' : '#666',
               border: 'none',
               cursor: 'pointer',
@@ -228,7 +207,7 @@ export function MealCard(): ReactNode {
           <button
             onClick={handleMealNext}
             style={{
-              background: 'rgba(255,255,255,0.55)',
+              background: 'rgba(255,247,237,0.6)',
               border: 'none',
               borderRadius: '6px',
               width: '22px',
@@ -246,33 +225,41 @@ export function MealCard(): ReactNode {
         {/* Menu list */}
         {fetching ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-1">
-            <RefreshCw size={18} style={{ color: theme.border, animation: 'spin 1s linear infinite' }} />
+            <RefreshCw size={18} style={{ color: '#fed7aa', animation: 'spin 1s linear infinite' }} />
             <span className="text-xs font-medium" style={{ color: '#bbb' }}>가져오는 중...</span>
           </div>
         ) : meal && meal.menu.length > 0 ? (
-          <div className="flex-1 overflow-auto space-y-1.5">
-            {meal.menu.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 py-0.5">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: theme.accent }} />
-                <span className="text-sm font-medium" style={{ color: '#333' }}>{item}</span>
+          <>
+            <div className="flex-1 flex flex-col justify-center items-center overflow-auto">
+              {meal.menu.map((item, i) => (
+                <div key={i} style={{
+                  fontSize: i < 2 ? '14px' : '13px',
+                  fontWeight: i < 2 ? 800 : 600,
+                  color: i < 2 ? '#1e293b' : '#475569',
+                  textAlign: 'center' as const,
+                  paddingBottom: '6px',
+                  marginBottom: '6px',
+                  borderBottom: i < meal.menu.length - 1 ? '1px solid rgba(255,237,213,0.5)' : 'none',
+                  width: '100%'
+                }}>
+                  {item}
+                </div>
+              ))}
+            </div>
+            {meal.calories && (
+              <div style={{ borderTop: '1px solid #f8fafc', paddingTop: '8px', fontSize: '10px', color: '#94a3b8', textAlign: 'center' as const }} className="shrink-0">
+                {meal.calories}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-1">
-            <Utensils size={20} style={{ color: theme.border }} />
+            <Utensils size={20} style={{ color: '#fed7aa' }} />
             <span className="text-xs font-medium" style={{ color: '#bbb' }}>
               {schoolCode ? '급식 정보 없음' : '클릭하여 입력'}
             </span>
           </div>
         )}
-
-        {/* Watermark */}
-        <Utensils size={60} style={{
-          position: 'absolute', bottom: '-8px', right: '-8px',
-          opacity: 0.04, color: theme.primary, pointerEvents: 'none',
-          transform: 'rotate(-15deg)'
-        }} />
       </div>
 
       <MealEditModal open={modalOpen} onClose={handleClose} />

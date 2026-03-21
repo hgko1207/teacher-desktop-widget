@@ -27,11 +27,11 @@ export function TodoWidget(): ReactNode {
     <div
       className="h-full p-5 flex flex-col"
       style={{
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(226,232,240,0.6)',
         borderRadius: '24px',
-        border: '1px solid rgba(255,255,255,0.6)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
       }}
     >
       <div className="flex justify-between items-center mb-3 shrink-0">

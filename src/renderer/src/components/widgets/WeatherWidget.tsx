@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
-import { CloudSun, Droplets } from 'lucide-react'
+import { CloudSun } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import type { WeatherData } from '../../types'
 
 const CACHE_MS = 30 * 60 * 1000
+
+const CARD_STYLE = {
+  background: 'rgba(255,255,255,0.8)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(226,232,240,0.6)',
+  borderRadius: '24px',
+  boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+} as const
 
 export function WeatherWidget(): ReactNode {
   const region = useSettingsStore((s) => s.settings.region)
@@ -33,59 +41,29 @@ export function WeatherWidget(): ReactNode {
   }, [load])
 
   return (
-    <div
-      className="h-full p-4 flex flex-col justify-between"
-      style={{
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(12px)',
-        borderRadius: '20px',
-        border: '1px solid rgba(255,255,255,0.6)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-      }}
-    >
-      <div className="flex items-center gap-1.5">
-        <CloudSun size={14} style={{ color: '#f59e0b' }} />
-        <span className="text-[10px] font-semibold" style={{ color: '#888' }}>오늘 날씨</span>
-        <span className="text-[10px] font-medium ml-auto" style={{ color: '#aaa' }}>{region}</span>
+    <div className="h-full p-4 flex items-center justify-between" style={CARD_STYLE}>
+      <div>
+        <p className="flex items-center gap-1" style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>
+          <CloudSun size={12} /> 오늘 날씨 <span style={{ color: '#cbd5e1' }}>{region}</span>
+        </p>
+        {weather ? (
+          <>
+            <div className="flex items-end gap-2 mt-1">
+              <span style={{ fontSize: '30px', fontWeight: 900, color: '#1e293b' }}>{weather.temp}°</span>
+              <span style={{ fontSize: '12px', fontWeight: 500, color: '#64748b', marginBottom: '4px' }}>{weather.condition}</span>
+            </div>
+            <p style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+              <span style={{ color: '#3b82f6' }}>최저 {weather.tempMin}°</span> / <span style={{ color: '#f87171' }}>최고 {weather.tempMax}°</span>
+            </p>
+          </>
+        ) : error ? (
+          <span style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px', display: 'block' }}>날씨 정보 없음</span>
+        ) : (
+          <span style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px', display: 'block' }}>로딩중...</span>
+        )}
       </div>
-
-      {weather ? (
-        <>
-          <div className="flex items-center gap-2 mt-1">
-            <span style={{ fontSize: '36px', lineHeight: 1 }}>{weather.icon}</span>
-            <div>
-              <span className="font-extrabold" style={{ fontSize: '28px', color: '#1a1a2e', lineHeight: 1 }}>
-                {weather.temp}°
-              </span>
-              <p className="text-[10px] font-medium" style={{ color: '#888' }}>
-                {weather.condition}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap mt-1">
-            <div
-              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-              style={{ background: '#eff6ff', color: '#2563eb' }}
-            >
-              최저 {weather.tempMin}° / 최고 {weather.tempMax}°
-            </div>
-            <div
-              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-              style={{ background: '#f0fdf4', color: '#16a34a' }}
-            >
-              <Droplets size={10} />
-              {weather.humidity}%
-            </div>
-          </div>
-        </>
-      ) : error ? (
-        <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs" style={{ color: '#ccc' }}>날씨 정보 없음</span>
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center">
-          <span className="text-xs" style={{ color: '#ccc' }}>로딩중...</span>
-        </div>
+      {weather && (
+        <span style={{ fontSize: '36px', opacity: 0.3 }}>{weather.icon}</span>
       )}
     </div>
   )

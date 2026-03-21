@@ -1,7 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Timer, Shuffle, FileX, Phone, ExternalLink, Hash } from 'lucide-react'
-import { useSettingsStore } from '../../stores/settingsStore'
-import { THEMES } from '../../config/themes'
+import { Timer, Shuffle, FileX, Phone, Hash } from 'lucide-react'
 import { TimerModal } from '../modals/TimerModal'
 import { RandomPickerModal } from '../modals/RandomPickerModal'
 import { MissingSubmissionModal } from '../modals/MissingSubmissionModal'
@@ -26,74 +24,46 @@ const TOOLS: ToolDef[] = [
   { name: '문서번호', icon: Hash, bgColor: '#eff6ff', iconColor: '#2563eb', modal: 'documentNumber' }
 ]
 
-export function SmartToolsWidget(): ReactNode {
-  const themeKey = useSettingsStore((s) => s.settings.themeKey)
-  const theme = THEMES[themeKey]
-  const [openModal, setOpenModal] = useState<ModalType>(null)
-  const [timerInitialMinutes, setTimerInitialMinutes] = useState<number | undefined>(undefined)
+const CARD_STYLE = {
+  background: 'rgba(255,255,255,0.8)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(226,232,240,0.6)',
+  borderRadius: '24px',
+  boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+} as const
 
-  const openTimerWithPreset = (minutes: number): void => {
-    setTimerInitialMinutes(minutes)
-    setOpenModal('timer')
-  }
+export function SmartToolsWidget(): ReactNode {
+  const [openModal, setOpenModal] = useState<ModalType>(null)
 
   const closeModal = (): void => {
     setOpenModal(null)
-    setTimerInitialMinutes(undefined)
   }
 
   return (
     <>
-      <div
-        className="h-full flex flex-col p-4"
-        style={{
-          background: 'rgba(255,255,255,0.55)',
-          backdropFilter: 'blur(12px)',
-          borderRadius: '24px',
-          border: '1px solid rgba(255,255,255,0.6)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-        }}
-      >
-        {/* 스마트 도구 */}
-        <div className="flex-1">
-          <span className="text-xs font-semibold" style={{ color: '#888' }}>스마트 도구</span>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {TOOLS.map((tool) => {
-              const Icon = tool.icon
-              return (
-                <button
-                  key={tool.name}
-                  className="flex items-center gap-2 p-2.5 rounded-xl transition-all hover:scale-105"
-                  style={{ background: tool.bgColor }}
-                  onClick={() => setOpenModal(tool.modal)}
-                >
-                  <Icon size={16} style={{ color: tool.iconColor }} />
-                  <span className="text-xs font-medium" style={{ color: tool.iconColor }}>{tool.name}</span>
-                </button>
-              )
-            })}
-          </div>
+      <div className="h-full flex flex-col p-4" style={CARD_STYLE}>
+        <span className="text-xs font-semibold shrink-0" style={{ color: '#94a3b8' }}>스마트 도구</span>
+        <div className="grid grid-cols-2 gap-2 mt-2 flex-1 content-start">
+          {TOOLS.map((tool) => {
+            const Icon = tool.icon
+            return (
+              <button
+                key={tool.name}
+                className="flex items-center gap-2 p-2.5 rounded-xl transition-all hover:scale-105"
+                style={{ background: tool.bgColor, cursor: 'pointer', border: 'none' }}
+                onClick={() => setOpenModal(tool.modal)}
+              >
+                <Icon size={16} style={{ color: tool.iconColor }} />
+                <span className="text-xs font-medium" style={{ color: tool.iconColor }}>{tool.name}</span>
+              </button>
+            )
+          })}
         </div>
-
-        {/* 빠른 5분 타이머 */}
-        <button
-          className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all hover:scale-105"
-          style={{
-            background: theme.bg,
-            color: theme.primary,
-            border: `1px solid ${theme.border}`
-          }}
-          onClick={() => openTimerWithPreset(5)}
-        >
-          <Timer size={14} />
-          빠른 5분 타이머 시작
-          <ExternalLink size={12} />
-        </button>
       </div>
 
       {/* Modals */}
       {openModal === 'timer' && (
-        <TimerModal onClose={closeModal} initialMinutes={timerInitialMinutes} />
+        <TimerModal onClose={closeModal} initialMinutes={undefined} />
       )}
       {openModal === 'randomPicker' && (
         <RandomPickerModal onClose={closeModal} />

@@ -8,11 +8,11 @@ export function LauncherWidget(): ReactNode {
     <div
       className="flex flex-col p-3"
       style={{
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(12px)',
-        borderRadius: '20px',
-        border: '1px solid rgba(255,255,255,0.6)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+        background: 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(226,232,240,0.6)',
+        borderRadius: '24px',
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
       }}
     >
       <span className="text-[10px] font-semibold mb-2" style={{ color: '#888' }}>즐겨찾기 런처</span>
