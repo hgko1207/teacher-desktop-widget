@@ -447,28 +447,36 @@ function registerIpcHandlers(): void {
         console.log('[search-school] comcigan results:', comciganResults.length)
 
         // 2. 나이스 검색 (급식용 - KEY 없이)
-        let neisMap: Record<string, { schoolCode: string; eduCode: string; address: string; schoolType: string }> = {}
+        // 이름+지역 키로 매칭 (동명 학교 구분)
+        interface NeisSchoolInfo { schoolCode: string; eduCode: string; address: string; schoolType: string; region: string }
+        const neisList: NeisSchoolInfo[] = []
         try {
           const neisUrl = `https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=50&SCHUL_NM=${encodeURIComponent(schoolName)}`
           const neisText = await fetchUrl(neisUrl)
-          const neisJson = JSON.parse(neisText) as { schoolInfo?: [{ head: unknown[] }, { row: Array<{ SD_SCHUL_CODE: string; SCHUL_NM: string; ATPT_OFCDC_SC_CODE: string; ORG_RDNMA: string; SCHUL_KND_SC_NM: string }> }] }
+          const neisJson = JSON.parse(neisText) as { schoolInfo?: [{ head: unknown[] }, { row: Array<{ SD_SCHUL_CODE: string; SCHUL_NM: string; ATPT_OFCDC_SC_CODE: string; ORG_RDNMA: string; SCHUL_KND_SC_NM: string; LCTN_SC_NM: string }> }] }
           if (neisJson.schoolInfo && neisJson.schoolInfo.length >= 2) {
             for (const row of neisJson.schoolInfo[1].row) {
-              neisMap[row.SCHUL_NM] = {
+              neisList.push({
                 schoolCode: row.SD_SCHUL_CODE,
                 eduCode: row.ATPT_OFCDC_SC_CODE,
                 address: row.ORG_RDNMA || '',
-                schoolType: row.SCHUL_KND_SC_NM || ''
-              }
+                schoolType: row.SCHUL_KND_SC_NM || '',
+                region: row.LCTN_SC_NM || ''
+              })
             }
           }
         } catch {
           // 나이스 실패해도 컴시간 결과만 반환
         }
 
-        // 3. 병합: 컴시간 결과에 나이스 정보 추가
+        // 3. 병합: 컴시간 결과에 나이스 정보 매칭 (이름+지역으로)
         return comciganResults.map((r) => {
-          const neis = neisMap[r.name]
+          // 같은 이름 + 같은 지역의 나이스 학교 찾기
+          const neis = neisList.find((n) =>
+            n.region.includes(r.region) && schoolName.length >= 2
+          ) ?? neisList.find((n) =>
+            r.name === schoolName || n.address.includes(r.region)
+          )
           return {
             schoolCode: neis?.schoolCode ?? '',
             schoolName: r.name,

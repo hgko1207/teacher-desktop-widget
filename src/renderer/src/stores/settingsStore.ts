@@ -48,7 +48,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   studentCount: 30,
   offWorkTime: '16:30',
   launchers: DEFAULT_LAUNCHERS,
-  fontSize: 'medium' as const
+  fontSize: 'medium' as const,
+  timetableMode: 'class' as const
 }
 
 interface SettingsState {

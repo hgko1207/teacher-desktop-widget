@@ -46,7 +46,8 @@ const DEFAULTS: Record<string, unknown> = {
       { id: 'default-2', name: '업무포털', letter: 'W', url: '', color: '#14b8a6' },
       { id: 'default-3', name: '클래스팅', letter: 'C', url: 'https://www.classting.com', color: '#eab308' }
     ],
-    fontSize: 'medium'
+    fontSize: 'medium',
+    timetableMode: 'class'
   },
   timetable: [],
   todos: [],

@@ -33,27 +33,27 @@ const DAYS: { key: DayOfWeek; label: string; idx: number }[] = [
 function CellEditor({
   day,
   period,
+  mode,
   onSave,
   onCancel
 }: {
   day: DayOfWeek
   period: number
+  mode: 'class' | 'subject'
   onSave: (e: TimetableEntry) => void
   onCancel: () => void
 }): ReactNode {
   const [val, setVal] = useState('')
   const submit = (): void => {
-    if (!val.trim()) {
-      onCancel()
-      return
-    }
+    if (!val.trim()) { onCancel(); return }
+    const trimmed = val.trim()
     onSave({
       day,
       period,
-      className: val.trim(),
-      subject: '',
+      className: mode === 'class' ? trimmed : '',
+      subject: mode === 'subject' ? trimmed : '',
       room: '',
-      color: getClassColor(val.trim())
+      color: getClassColor(trimmed)
     })
   }
   return (
@@ -61,13 +61,10 @@ function CellEditor({
       autoFocus
       className="w-full h-full text-center text-sm font-semibold outline-none rounded-xl"
       style={{ border: '2px solid #818cf8', background: '#fff' }}
-      placeholder="반"
+      placeholder={mode === 'class' ? '반 (예: 1-4)' : '과목 (예: 국어)'}
       value={val}
       onChange={(e) => setVal(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') submit()
-        if (e.key === 'Escape') onCancel()
-      }}
+      onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel() }}
       onBlur={submit}
     />
   )
@@ -90,6 +87,7 @@ export function TimetableWidget(): ReactNode {
   const comciganCode = useSettingsStore((s) => s.settings.comciganCode)
   const grade = useSettingsStore((s) => s.settings.grade)
   const classNum = useSettingsStore((s) => s.settings.classNum)
+  const timetableMode = useSettingsStore((s) => s.settings.timetableMode)
   const theme = THEMES[themeKey]
   const { hours, minutes: curMinutes, dayIndex } = useCurrentTime()
   const { currentPeriod } = useCurrentPeriod()
@@ -291,6 +289,7 @@ export function TimetableWidget(): ReactNode {
                         <CellEditor
                           day={d.key}
                           period={pt.period}
+                          mode={timetableMode}
                           onSave={(e) => {
                             addEntry(e)
                             setEditCell(null)
@@ -302,8 +301,9 @@ export function TimetableWidget(): ReactNode {
                           className="text-sm font-bold"
                           style={{ color: isCur ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
                         >
-                          {entry.subject ? `${entry.subject} ` : ''}
-                          {entry.className}
+                          {timetableMode === 'subject'
+                            ? (entry.subject || entry.className)
+                            : (entry.subject ? `${entry.subject} ` : '') + entry.className}
                         </span>
                       ) : null}
                     </td>

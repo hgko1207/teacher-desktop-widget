@@ -403,6 +403,20 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
         </select>
       </div>
 
+      {/* 시간표 입력 모드 */}
+      <div>
+        <label className="text-sm font-semibold" style={sectionLabel()}>시간표 입력 모드</label>
+        <select
+          className="w-full mt-1.5 px-3 py-2.5 text-sm"
+          style={inputStyle(borderColor)}
+          value={settings.timetableMode}
+          onChange={(e) => setSettings({ timetableMode: e.target.value as 'class' | 'subject' })}
+        >
+          <option value="class">반 번호 입력 (중등 교과 교사)</option>
+          <option value="subject">과목 입력 (초등 담임 / 특수반)</option>
+        </select>
+      </div>
+
       {/* Grade + Class */}
       <div className="grid grid-cols-2 gap-3">
         <div>
