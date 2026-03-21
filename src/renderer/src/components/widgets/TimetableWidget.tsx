@@ -91,23 +91,21 @@ export function TimetableWidget(): ReactNode {
 
   return (
     <div
-      className="h-full p-5 flex flex-col overflow-hidden"
+      className="h-full flex flex-col overflow-hidden"
       style={{
         background: 'rgba(255,255,255,0.8)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(226,232,240,0.6)',
-        borderRadius: '24px',
-        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+        borderRadius: '16px',
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
+        padding: '16px'
       }}
     >
-      <div className="flex justify-between items-center mb-3 shrink-0">
-        <h3
-          className="text-base font-bold flex items-center gap-2"
-          style={{ color: '#1a1a2e' }}
-        >
-          <List size={18} />
-          주간 시간표
-        </h3>
+      <div className="flex justify-between items-center shrink-0" style={{ marginBottom: '10px' }}>
+        <div className="flex items-center gap-2">
+          <List size={16} style={{ color: '#6366f1' }} />
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>주간 시간표</span>
+        </div>
         <button
           onClick={() => setEditing(!isEditing)}
           className="px-3 py-1 rounded-xl text-xs font-semibold transition-all"
@@ -131,15 +129,17 @@ export function TimetableWidget(): ReactNode {
                 return (
                   <th
                     key={d.key}
-                    className="text-center text-sm font-semibold py-2 rounded-xl"
+                    className="text-center py-2 rounded-xl"
                     style={
                       isToday
                         ? {
                             background: '#1f2937',
                             color: '#ffffff',
+                            fontSize: '13px',
+                            fontWeight: 700,
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }
-                        : { color: '#999' }
+                        : { color: '#999', fontSize: '13px', fontWeight: 700 }
                     }
                   >
                     {d.label}
@@ -153,9 +153,9 @@ export function TimetableWidget(): ReactNode {
               <tr key={pt.period}>
                 <td
                   className="text-center"
-                  style={{ fontSize: '11px', color: '#999', lineHeight: '1.2' }}
+                  style={{ color: '#999', lineHeight: '1.2' }}
                 >
-                  <div className="font-semibold">{pt.period}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600 }}>{pt.period}</div>
                   <div style={{ color: '#ccc', fontSize: '10px' }}>{pt.startTime}</div>
                 </td>
                 {DAYS.map((d) => {

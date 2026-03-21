@@ -129,18 +129,22 @@ export function MealCard(): ReactNode {
           background: 'linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,247,237,0.3))',
           backdropFilter: 'blur(8px)',
           border: '1px solid rgba(226,232,240,0.6)',
-          borderRadius: '24px',
+          borderRadius: '16px',
           boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
           padding: '16px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          transition: 'filter 0.15s'
         }}
         onClick={() => setModalOpen(true)}
+        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.97)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)' }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-2 shrink-0">
-          <h3 className="flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
-            <Utensils size={16} style={{ color: '#fb923c' }} /> 오늘의 급식
-          </h3>
+        <div className="flex justify-between items-center shrink-0" style={{ marginBottom: '10px' }}>
+          <div className="flex items-center gap-2">
+            <Utensils size={16} style={{ color: '#fb923c' }} />
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>오늘의 급식</span>
+          </div>
           <div className="flex items-center gap-1">
             {schoolCode && (
               <button

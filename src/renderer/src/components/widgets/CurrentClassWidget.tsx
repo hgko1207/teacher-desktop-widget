@@ -17,7 +17,7 @@ const CARD_STYLE = {
   background: 'rgba(255,255,255,0.8)',
   backdropFilter: 'blur(8px)',
   border: '1px solid rgba(226,232,240,0.6)',
-  borderRadius: '24px',
+  borderRadius: '16px',
   boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
 } as const
 
@@ -51,7 +51,7 @@ export function CurrentClassWidget(): ReactNode {
   }
 
   return (
-    <div className="h-full p-4 flex flex-col justify-center" style={CARD_STYLE}>
+    <div className="h-full flex flex-col justify-center" style={{ ...CARD_STYLE, padding: '14px' }}>
       <p className="flex items-center gap-1" style={{ fontSize: '11px', color: '#94a3b8' }}>
         <BookOpen size={12} /> 지금 이 시간
       </p>

@@ -25,23 +25,19 @@ export function TodoWidget(): ReactNode {
 
   return (
     <div
-      className="h-full p-5 flex flex-col"
+      className="h-full flex flex-col"
       style={{
         background: 'rgba(255,255,255,0.8)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(226,232,240,0.6)',
-        borderRadius: '24px',
-        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+        borderRadius: '16px',
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
+        padding: '16px'
       }}
     >
-      <div className="flex justify-between items-center mb-3 shrink-0">
-        <h3
-          className="text-base font-bold flex items-center gap-2"
-          style={{ color: '#1a1a2e' }}
-        >
-          <CheckSquare size={18} style={{ color: theme.primary }} />
-          나의 할 일
-        </h3>
+      <div className="flex items-center gap-2 shrink-0" style={{ marginBottom: '10px' }}>
+        <CheckSquare size={16} style={{ color: theme.primary }} />
+        <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>나의 할 일</span>
       </div>
 
       <div className="flex gap-2 mb-3 shrink-0">
@@ -50,8 +46,8 @@ export function TodoWidget(): ReactNode {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="할 일을 입력 후 Enter..."
-          className="flex-1 text-sm px-4 py-2.5 rounded-2xl outline-none transition"
-          style={{ background: '#f9fafb', border: `1px solid ${theme.border}` }}
+          className="flex-1 px-4 py-2.5 rounded-2xl outline-none transition"
+          style={{ background: '#f9fafb', border: `1px solid ${theme.border}`, fontSize: '13px' }}
         />
       </div>
 
@@ -74,7 +70,7 @@ export function TodoWidget(): ReactNode {
                 style={{ background: '#ef4444' }}
               />
             )}
-            <span className="text-sm flex-1 font-medium" style={{ color: '#333' }}>
+            <span className="flex-1 font-medium" style={{ color: '#333', fontSize: '13px' }}>
               {todo.text}
             </span>
             <button
@@ -99,7 +95,7 @@ export function TodoWidget(): ReactNode {
             >
               <CheckSquare size={12} color="#fff" />
             </button>
-            <span className="text-sm flex-1 line-through" style={{ color: '#bbb' }}>
+            <span className="flex-1 line-through" style={{ color: '#bbb', fontSize: '13px' }}>
               {todo.text}
             </span>
             <button
@@ -113,7 +109,7 @@ export function TodoWidget(): ReactNode {
         ))}
         {todos.length === 0 && (
           <div className="flex-1 flex items-center justify-center py-8">
-            <p className="text-sm" style={{ color: '#ccc' }}>할 일을 추가해보세요</p>
+            <p style={{ color: '#94a3b8', fontSize: '13px' }}>할 일을 추가해보세요</p>
           </div>
         )}
       </div>

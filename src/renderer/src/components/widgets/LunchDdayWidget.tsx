@@ -169,7 +169,7 @@ export function LunchDdayWidget(): ReactNode {
           className="p-3 shrink-0"
           style={{
             background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-            borderRadius: '20px',
+            borderRadius: '16px',
             border: '1px solid rgba(0,0,0,0.04)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
             cursor: 'pointer'
@@ -218,7 +218,7 @@ export function LunchDdayWidget(): ReactNode {
           className="flex-1 p-3 flex flex-col relative overflow-hidden min-h-0"
           style={{
             background: `linear-gradient(145deg, ${theme.bg}, #ffffff)`,
-            borderRadius: '20px',
+            borderRadius: '16px',
             border: `1px solid ${theme.border}`,
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             cursor: 'pointer'

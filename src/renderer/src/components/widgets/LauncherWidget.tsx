@@ -11,7 +11,7 @@ export function LauncherWidget(): ReactNode {
         background: 'rgba(255,255,255,0.8)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(226,232,240,0.6)',
-        borderRadius: '24px',
+        borderRadius: '16px',
         boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
       }}
     >

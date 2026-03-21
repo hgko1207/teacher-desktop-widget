@@ -37,18 +37,19 @@ export function MemoWidget(): ReactNode {
 
   return (
     <div
-      className="h-full flex flex-col p-3"
+      className="h-full flex flex-col"
       style={{
         background: 'rgba(255,255,255,0.8)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(226,232,240,0.6)',
-        borderRadius: '24px',
-        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
+        borderRadius: '16px',
+        boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
+        padding: '16px'
       }}
     >
-      <div className="flex items-center gap-1.5 mb-2 shrink-0">
-        <Pencil size={14} style={{ color: '#ca8a04' }} />
-        <span className="text-sm font-bold" style={{ color: '#a16207' }}>메모</span>
+      <div className="flex items-center gap-2 shrink-0" style={{ marginBottom: '10px' }}>
+        <Pencil size={16} style={{ color: '#ca8a04' }} />
+        <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>메모</span>
       </div>
       <textarea
         value={text}

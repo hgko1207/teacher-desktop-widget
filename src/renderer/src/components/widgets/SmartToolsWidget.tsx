@@ -28,7 +28,7 @@ const CARD_STYLE = {
   background: 'rgba(255,255,255,0.8)',
   backdropFilter: 'blur(8px)',
   border: '1px solid rgba(226,232,240,0.6)',
-  borderRadius: '24px',
+  borderRadius: '16px',
   boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)'
 } as const
 
@@ -41,9 +41,12 @@ export function SmartToolsWidget(): ReactNode {
 
   return (
     <>
-      <div className="h-full flex flex-col p-4" style={CARD_STYLE}>
-        <span className="text-xs font-semibold shrink-0" style={{ color: '#94a3b8' }}>스마트 도구</span>
-        <div className="grid grid-cols-2 gap-2 mt-2 flex-1 content-start">
+      <div className="h-full flex flex-col" style={{ ...CARD_STYLE, padding: '16px' }}>
+        <div className="flex items-center gap-2 shrink-0" style={{ marginBottom: '10px' }}>
+          <Timer size={16} style={{ color: '#ea580c' }} />
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>스마트 도구</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 flex-1 content-start">
           {TOOLS.map((tool) => {
             const Icon = tool.icon
             return (

@@ -45,28 +45,27 @@ export function DdayCompact(): ReactNode {
   return (
     <>
       <div
-        className="h-full p-3"
+        className="h-full"
         style={{
           background: 'rgba(255,255,255,0.8)',
           backdropFilter: 'blur(8px)',
           border: '1px solid rgba(226,232,240,0.6)',
-          borderRadius: '24px',
+          borderRadius: '16px',
           boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          padding: '16px',
+          transition: 'filter 0.15s'
         }}
         onClick={() => setModalOpen(true)}
+        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.97)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)' }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: mainDday ? theme.bg : '#f3f4f6' }}
-            >
-              <CalendarDays size={12} style={{ color: mainDday ? theme.primary : '#bbb' }} />
-            </div>
+            <CalendarDays size={16} style={{ color: mainDday ? theme.primary : '#bbb' }} />
             <div>
-              <div className="text-[9px] font-medium" style={{ color: '#aaa' }}>D-DAY</div>
-              <div className="text-sm font-bold" style={{ color: '#333' }}>
+              <div style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8' }}>D-DAY</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#333' }}>
                 {mainDday ? mainDday.title : 'D-Day 추가하기'}
               </div>
             </div>
