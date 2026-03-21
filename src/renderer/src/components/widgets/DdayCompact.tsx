@@ -66,7 +66,7 @@ export function DdayCompact(): ReactNode {
             </div>
             <div>
               <div className="text-[9px] font-medium" style={{ color: '#aaa' }}>D-DAY</div>
-              <div className="text-xs font-bold" style={{ color: '#333' }}>
+              <div className="text-sm font-bold" style={{ color: '#333' }}>
                 {mainDday ? mainDday.title : 'D-Day 추가하기'}
               </div>
             </div>
@@ -86,8 +86,8 @@ export function DdayCompact(): ReactNode {
               const d = calcD(item.targetDate)
               return (
                 <div key={item.id} className="flex items-center justify-between px-1">
-                  <span className="text-[10px]" style={{ color: '#999' }}>{item.title}</span>
-                  <span className="text-[10px] font-bold tabular-nums" style={{ color: ddayColor(d) }}>{ddayLabel(d)}</span>
+                  <span className="text-xs" style={{ color: '#666' }}>{item.title}</span>
+                  <span className="text-xs font-bold tabular-nums" style={{ color: ddayColor(d) }}>{ddayLabel(d)}</span>
                 </div>
               )
             })}

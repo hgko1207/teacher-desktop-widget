@@ -48,7 +48,7 @@ export function MemoWidget(): ReactNode {
     >
       <div className="flex items-center gap-1.5 mb-2 shrink-0">
         <Pencil size={14} style={{ color: '#ca8a04' }} />
-        <span className="text-xs font-bold" style={{ color: '#a16207' }}>메모</span>
+        <span className="text-sm font-bold" style={{ color: '#a16207' }}>메모</span>
       </div>
       <textarea
         value={text}

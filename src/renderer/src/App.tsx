@@ -31,51 +31,59 @@ function App(): ReactNode {
 
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ background: '#F8F9FB' }}>
-      {/* 좌측 사이드바 */}
       {visibleWidgets.organizer && <DesktopOrganizer />}
 
-      {/* 메인 영역 */}
-      <main className="flex-1 h-full flex flex-col p-3 overflow-hidden" style={{ gap: '12px' }}>
-        {/* 헤더 */}
+      <main className="flex-1 h-full flex flex-col overflow-hidden" style={{ padding: '12px', gap: '12px' }}>
         <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
-        {/* 상단 (100px, 8단 그리드) */}
-        <div className="grid grid-cols-8 shrink-0" style={{ gap: '12px', height: '100px' }}>
+        {/* ===== 상단 행 (100px) ===== */}
+        <div className="shrink-0 flex" style={{ height: '100px', gap: '12px' }}>
           {visibleWidgets.clockWeather && (
             <>
-              <div className="col-span-2"><ClockWidget /></div>
-              <div className="col-span-2"><WeatherWidget /></div>
+              <div style={{ flex: '1 1 0', minWidth: 0 }}><ClockWidget /></div>
+              <div style={{ flex: '1 1 0', minWidth: 0 }}><WeatherWidget /></div>
             </>
           )}
           {visibleWidgets.currentClass && (
-            <div className="col-span-2"><CurrentClassWidget /></div>
+            <div style={{ flex: '1 1 0', minWidth: 0 }}><CurrentClassWidget /></div>
           )}
           {visibleWidgets.quotesOffWork && (
-            <div className="col-span-2"><QuotesOffWorkWidget /></div>
+            <div style={{ flex: '1 1 0', minWidth: 0 }}><QuotesOffWorkWidget /></div>
           )}
         </div>
 
-        {/* 하단 (flex-1, 8단 그리드) */}
-        <div className="flex-1 grid grid-cols-8 min-h-0 overflow-hidden" style={{ gap: '12px' }}>
+        {/* ===== 하단 행 (flex-1) ===== */}
+        <div className="flex-1 flex min-h-0 overflow-hidden" style={{ gap: '12px' }}>
+          {/* 시간표 */}
           {visibleWidgets.timetable && (
-            <div className="col-span-3 min-h-0 overflow-hidden"><TimetableWidget /></div>
+            <div style={{ flex: '3 1 0', minWidth: 0 }} className="min-h-0 overflow-hidden">
+              <TimetableWidget />
+            </div>
           )}
-          <div className="col-span-3 flex flex-col min-h-0 overflow-hidden" style={{ gap: '12px' }}>
-            {visibleWidgets.todo && (
-              <div style={{ flex: '3 1 0' }} className="min-h-0 overflow-hidden"><TodoWidget /></div>
-            )}
-            {visibleWidgets.lunchDday && (
-              <div className="shrink-0"><DdayCompact /></div>
-            )}
-            <div style={{ flex: '1.5 1 0' }} className="min-h-0 overflow-hidden"><MemoWidget /></div>
+
+          {/* 할일 + D-Day + 메모 */}
+          <div style={{ flex: '3 1 0', minWidth: 0 }} className="flex flex-col min-h-0 overflow-hidden" >
+            <div style={{ gap: '12px' }} className="flex flex-col flex-1 min-h-0">
+              {visibleWidgets.todo && (
+                <div style={{ flex: '3 1 0' }} className="min-h-0 overflow-hidden"><TodoWidget /></div>
+              )}
+              {visibleWidgets.lunchDday && (
+                <div className="shrink-0"><DdayCompact /></div>
+              )}
+              <div style={{ flex: '1.5 1 0' }} className="min-h-0 overflow-hidden"><MemoWidget /></div>
+            </div>
           </div>
-          <div className="col-span-2 flex flex-col min-h-0 overflow-hidden" style={{ gap: '12px' }}>
-            {visibleWidgets.smartTools && (
-              <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><SmartToolsWidget /></div>
-            )}
-            {visibleWidgets.lunchDday && (
-              <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><MealCard /></div>
-            )}
+
+          {/* 스마트도구 + 급식 */}
+          <div style={{ flex: '2 1 0', minWidth: 0 }} className="flex flex-col min-h-0 overflow-hidden">
+            <div style={{ gap: '12px' }} className="flex flex-col flex-1 min-h-0">
+              {visibleWidgets.smartTools && (
+                <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><SmartToolsWidget /></div>
+              )}
+              {visibleWidgets.lunchDday && (
+                <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><MealCard /></div>
+              )}
+            </div>
           </div>
         </div>
       </main>
