@@ -37,7 +37,7 @@ function App(): ReactNode {
         <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
         {/* ===== 상단 행 (100px) ===== */}
-        <div className="shrink-0 flex" style={{ height: '100px', gap: '12px' }}>
+        <div className="shrink-0 flex" style={{ height: '130px', gap: '12px' }}>
           {visibleWidgets.clockWeather && (
             <>
               <div style={{ flex: '1 1 0', minWidth: 0 }}><ClockWidget /></div>
