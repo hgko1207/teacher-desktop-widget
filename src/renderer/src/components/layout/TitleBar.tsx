@@ -9,6 +9,7 @@ interface TitleBarProps {
 
 export function TitleBar({ onOpenSettings }: TitleBarProps): ReactNode {
   const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const launchers = useSettingsStore((s) => s.settings.launchers)
   const theme = THEMES[themeKey]
 
   return (
@@ -26,6 +27,32 @@ export function TitleBar({ onOpenSettings }: TitleBarProps): ReactNode {
           Teacher&apos;s Desk
         </span>
       </div>
+
+      {/* Center: Launcher icons */}
+      <div className="no-drag flex items-center gap-2">
+        {launchers.map((l) => (
+          <button
+            key={l.id}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all hover:scale-105"
+            style={{
+              background: 'rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              cursor: 'pointer'
+            }}
+            onClick={() => { if (l.url) window.open(l.url, '_blank') }}
+            title={l.name}
+          >
+            <div
+              className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+              style={{ background: l.color }}
+            >
+              {l.letter}
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: '#555' }}>{l.name}</span>
+          </button>
+        ))}
+      </div>
+
       <button
         className="no-drag flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
         style={{
@@ -36,7 +63,7 @@ export function TitleBar({ onOpenSettings }: TitleBarProps): ReactNode {
         onClick={onOpenSettings}
       >
         <Settings size={14} />
-        위젯 편집 및 테마
+        설정
       </button>
       <style>{`
         @keyframes pulseGlow {

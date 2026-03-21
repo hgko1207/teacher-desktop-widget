@@ -1,14 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { TitleBar } from './components/layout/TitleBar'
 import { ClockWidget } from './components/widgets/ClockWidget'
+import { WeatherWidget } from './components/widgets/WeatherWidget'
 import { CurrentClassWidget } from './components/widgets/CurrentClassWidget'
 import { TimetableWidget } from './components/widgets/TimetableWidget'
 import { TodoWidget } from './components/widgets/TodoWidget'
 import { DesktopOrganizer } from './components/widgets/DesktopOrganizer'
 import { QuotesOffWorkWidget } from './components/widgets/QuotesOffWorkWidget'
-import { LunchDdayWidget } from './components/widgets/LunchDdayWidget'
+import { DdayCompact } from './components/widgets/DdayCompact'
+import { MealCard } from './components/widgets/MealCard'
+import { MemoWidget } from './components/widgets/MemoWidget'
 import { SmartToolsWidget } from './components/widgets/SmartToolsWidget'
-import { LauncherWidget } from './components/widgets/LauncherWidget'
 import { SettingsModal } from './components/widgets/SettingsModal'
 import { useSettingsStore } from './stores/settingsStore'
 import { useTimetableStore } from './stores/timetableStore'
@@ -44,55 +46,76 @@ function App(): ReactNode {
       <TitleBar onOpenSettings={() => setSettingsOpen(true)} />
 
       {/*
-        레이아웃 (레퍼런스 기반):
-        [파티션] | [시계/날씨] [현재수업] [퇴근/명언] | [런처]
-                 | [시간표]           [할일]         | [스마트도구]
-                 |                    [D-Day/급식]   |
+        레이아웃:
+        [바탕화면 빠른폴더 320px] | [시계+날짜] [날씨] [현재수업+퇴근타이머] ← 상단 130px
+                                  | [시간표 300px] [할일+D-Day+메모] ← 하단 flex
+        [명언 + 급식(세로크게) + 스마트도구] ← 우측 280px
       */}
       <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0">
 
-        {/* 1열: 파티션 */}
+        {/* Column 1: Desktop Organizer (320px) */}
         {visibleWidgets.organizer && <DesktopOrganizer />}
 
-        {/* 2열: 메인 (시계+시간표 / 할일+D-Day) */}
+        {/* Column 2: Main content (flex-1) */}
         <div className="flex-1 flex flex-col gap-3 min-w-0 min-h-0">
 
-          {/* 상단: 시계+날씨 | 현재수업 | 퇴근/명언 */}
+          {/* Top row (130px): Clock | Weather | CurrentClass + OffWork */}
           <div className="flex gap-3 shrink-0" style={{ height: '130px' }}>
             {visibleWidgets.clockWeather && (
-              <div className="flex-1 min-w-0"><ClockWidget /></div>
+              <>
+                <div style={{ width: '240px' }} className="shrink-0">
+                  <ClockWidget />
+                </div>
+                <div style={{ width: '200px' }} className="shrink-0">
+                  <WeatherWidget />
+                </div>
+              </>
             )}
-            {visibleWidgets.currentClass && (
-              <div style={{ width: '180px' }} className="shrink-0"><CurrentClassWidget /></div>
-            )}
-            {visibleWidgets.quotesOffWork && (
-              <div style={{ width: '240px' }} className="shrink-0"><QuotesOffWorkWidget /></div>
-            )}
+            {/* CurrentClass + OffWork timer in a wider combined area */}
+            <div className="flex-1 flex gap-3 min-w-0">
+              {visibleWidgets.currentClass && (
+                <div className="flex-1 min-w-0"><CurrentClassWidget /></div>
+              )}
+              {visibleWidgets.quotesOffWork && (
+                <div className="flex-1 min-w-0"><QuotesOffWorkWidget /></div>
+              )}
+            </div>
           </div>
 
-          {/* 하단: 시간표 | 할일+D-Day/급식 */}
+          {/* Bottom row (flex-1): Timetable (300px) | Todo + D-Day + Memo column */}
           <div className="flex-1 flex gap-3 min-h-0">
 
-            {/* 시간표 (넉넉한 크기) */}
+            {/* Timetable (300px fixed) */}
             {visibleWidgets.timetable && (
-              <div className="flex-1 min-w-0 min-h-0"><TimetableWidget /></div>
+              <div style={{ width: '300px' }} className="shrink-0 min-h-0">
+                <TimetableWidget />
+              </div>
             )}
 
-            {/* 할일 + D-Day/급식 (세로 스택) */}
-            <div style={{ width: '340px' }} className="shrink-0 flex flex-col gap-3 min-h-0">
+            {/* Todo + D-Day + Memo vertical stack */}
+            <div className="flex-1 flex flex-col gap-3 min-h-0 min-w-0">
               {visibleWidgets.todo && (
                 <div className="flex-1 min-h-0"><TodoWidget /></div>
               )}
               {visibleWidgets.lunchDday && (
-                <div className="shrink-0"><LunchDdayWidget /></div>
+                <div className="shrink-0"><DdayCompact /></div>
               )}
+              <div className="shrink-0" style={{ height: '140px' }}>
+                <MemoWidget />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 3열: 런처 + 스마트도구 (좁은 우측 바) */}
-        <div style={{ width: '200px' }} className="shrink-0 flex flex-col gap-3 min-h-0 overflow-auto">
-          <LauncherWidget />
+        {/* Column 3: Right sidebar (280px) - Quote + Meal + SmartTools */}
+        <div style={{ width: '280px' }} className="shrink-0 flex flex-col gap-3 min-h-0">
+          {/* Quote card (compact) */}
+          {visibleWidgets.quotesOffWork && <QuoteCard />}
+
+          {/* Meal card (tall) */}
+          {visibleWidgets.lunchDday && <MealCard />}
+
+          {/* Smart Tools */}
           {visibleWidgets.smartTools && <SmartToolsWidget />}
         </div>
       </div>
@@ -108,5 +131,39 @@ function App(): ReactNode {
     </div>
   )
 }
+
+/** Small quote card for the right column */
+function QuoteCard(): ReactNode {
+  const [quoteIndex] = useState(() => Math.floor(Math.random() * QUOTES.length))
+
+  return (
+    <div
+      className="shrink-0 p-4 flex items-center gap-3"
+      style={{
+        background: 'rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: '20px',
+        border: '1px solid rgba(255,255,255,0.6)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+      }}
+    >
+      <span style={{ fontSize: '24px' }}>💖</span>
+      <span className="text-xs font-medium leading-relaxed" style={{ color: '#555' }}>
+        {QUOTES[quoteIndex]}
+      </span>
+    </div>
+  )
+}
+
+const QUOTES = [
+  '오늘 하루도 수고했어요!',
+  '작은 변화가 큰 성장을 만듭니다.',
+  '학생들의 미래를 밝히는 당신, 멋져요.',
+  '쉬어가도 괜찮아요.',
+  '당신의 노력은 빛나고 있어요.',
+  '오늘의 가르침이 내일의 기적이 됩니다.',
+  '좋은 선생님이 좋은 세상을 만듭니다.',
+  '힘든 날도 있지만, 보람찬 날이 더 많을 거예요.'
+]
 
 export default App

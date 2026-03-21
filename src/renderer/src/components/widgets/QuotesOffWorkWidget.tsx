@@ -40,30 +40,37 @@ export function QuotesOffWorkWidget(): ReactNode {
     }
   }, [hours, minutes, offWorkTime])
 
-  const cardStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.55)',
-    borderRadius: '24px',
-    border: '1px solid rgba(255,255,255,0.6)',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-  }
-
   return (
-    <div className="h-full grid grid-cols-2 gap-3">
-      {/* 퇴근 카운트다운 */}
-      <div className="flex flex-col items-center justify-center p-4" style={cardStyle}>
-        <Coffee size={28} style={{ color: '#f59e0b' }} />
-        <span className="text-xs font-medium mt-2" style={{ color: '#888' }}>
-          행복한 퇴근까지
-        </span>
-        <span className="text-xl font-bold mt-1" style={{ color: '#1a1a2e' }}>
-          {offWorkText}
-        </span>
+    <div
+      className="h-full p-4 flex items-center gap-4"
+      style={{
+        background: 'rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: '20px',
+        border: '1px solid rgba(255,255,255,0.6)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+      }}
+    >
+      {/* Off-work timer */}
+      <div className="flex items-center gap-3 shrink-0">
+        <Coffee size={24} style={{ color: '#f59e0b' }} />
+        <div>
+          <span className="text-[10px] font-medium" style={{ color: '#888' }}>
+            행복한 퇴근까지
+          </span>
+          <div className="text-lg font-bold" style={{ color: '#1a1a2e' }}>
+            {offWorkText}
+          </div>
+        </div>
       </div>
 
-      {/* 명언 */}
-      <div className="flex flex-col items-center justify-center p-4 text-center" style={cardStyle}>
-        <Heart size={28} style={{ color: '#ec4899' }} />
-        <span className="text-xs font-medium mt-2 leading-relaxed" style={{ color: '#555' }}>
+      {/* Divider */}
+      <div style={{ width: '1px', height: '40px', background: '#e5e7eb' }} />
+
+      {/* Quote */}
+      <div className="flex items-center gap-2 min-w-0">
+        <Heart size={16} style={{ color: '#ec4899' }} className="shrink-0" />
+        <span className="text-xs font-medium leading-relaxed" style={{ color: '#555' }}>
           {QUOTES[quoteIndex]}
         </span>
       </div>
