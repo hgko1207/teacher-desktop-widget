@@ -9,6 +9,9 @@ interface ComciganSearchResult {
   schoolName: string
   region: string
   comciganCode: number
+  eduCode: string
+  address: string
+  schoolType: string
 }
 
 interface SettingsModalProps {
@@ -285,6 +288,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
       schoolCode: result.schoolCode,
       schoolName: result.schoolName,
       comciganCode: result.comciganCode,
+      eduCode: result.eduCode || settings.eduCode,
       region: result.region || settings.region
     })
     setSchoolSearchQuery('')
@@ -349,9 +353,12 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#333' }}>
                     {result.schoolName}
                     <span style={{ fontSize: '11px', fontWeight: 500, color: theme.accent, marginLeft: '6px' }}>
-                      {result.region}
+                      {result.schoolType || result.region}
                     </span>
                   </div>
+                  {result.address && (
+                    <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>{result.address}</div>
+                  )}
                 </button>
               ))}
             </div>

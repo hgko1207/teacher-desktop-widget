@@ -24,6 +24,9 @@ interface SchoolSearchResult {
   schoolName: string
   region: string
   comciganCode: number
+  eduCode: string
+  address: string
+  schoolType: string
 }
 
 interface ComciganTimetableResult {

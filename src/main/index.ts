@@ -74,6 +74,9 @@ interface ComciganSchoolResult {
   schoolName: string
   region: string
   comciganCode: number
+  eduCode: string
+  address: string
+  schoolType: string
 }
 
 interface ComciganPeriodItem {
@@ -371,8 +374,11 @@ function registerIpcHandlers(): void {
     async (_event, schoolCode: string, region: string, date: string, apiKey: string, eduCodeDirect: string): Promise<ParsedMealResult | null> => {
       try {
         const eduCode = eduCodeDirect || REGION_TO_EDU_CODE[region] || 'B10'
-        const key = apiKey || 'SAMPLE'
-        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(key)}&Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&MLSV_YMD=${encodeURIComponent(date)}`
+        // KEY 없이도 나이스 API 작동 (KEY 파라미터 생략)
+        let url = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&MLSV_YMD=${encodeURIComponent(date)}`
+        if (apiKey) {
+          url += `&KEY=${encodeURIComponent(apiKey)}`
+        }
 
         const text = await fetchUrl(url)
         const json = JSON.parse(text) as NeisResponse
@@ -442,21 +448,50 @@ function registerIpcHandlers(): void {
     }
   )
 
-  // === 컴시간 학교 검색 ===
+  // === 학교 검색 (컴시간 + 나이스 병합) ===
   ipcMain.handle(
     'search-school',
     async (_event, schoolName: string): Promise<ComciganSchoolResult[]> => {
       try {
+        // 1. 컴시간 검색 (시간표용)
         const Timetable = require('comcigan-parser')
         const timetable = new Timetable()
         await timetable.init()
-        const results: ComciganSearchItem[] = timetable.search(schoolName)
-        return results.map((r) => ({
-          schoolCode: String(r.code),
-          schoolName: r.name,
-          region: r.region,
-          comciganCode: r.code
-        }))
+        const comciganResults: ComciganSearchItem[] = await timetable.search(schoolName)
+
+        // 2. 나이스 검색 (급식용 - KEY 없이)
+        let neisMap: Record<string, { schoolCode: string; eduCode: string; address: string; schoolType: string }> = {}
+        try {
+          const neisUrl = `https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=50&SCHUL_NM=${encodeURIComponent(schoolName)}`
+          const neisText = await fetchUrl(neisUrl)
+          const neisJson = JSON.parse(neisText) as { schoolInfo?: [{ head: unknown[] }, { row: Array<{ SD_SCHUL_CODE: string; SCHUL_NM: string; ATPT_OFCDC_SC_CODE: string; ORG_RDNMA: string; SCHUL_KND_SC_NM: string }> }] }
+          if (neisJson.schoolInfo && neisJson.schoolInfo.length >= 2) {
+            for (const row of neisJson.schoolInfo[1].row) {
+              neisMap[row.SCHUL_NM] = {
+                schoolCode: row.SD_SCHUL_CODE,
+                eduCode: row.ATPT_OFCDC_SC_CODE,
+                address: row.ORG_RDNMA || '',
+                schoolType: row.SCHUL_KND_SC_NM || ''
+              }
+            }
+          }
+        } catch {
+          // 나이스 실패해도 컴시간 결과만 반환
+        }
+
+        // 3. 병합: 컴시간 결과에 나이스 정보 추가
+        return comciganResults.map((r) => {
+          const neis = neisMap[r.name]
+          return {
+            schoolCode: neis?.schoolCode ?? '',
+            schoolName: r.name,
+            region: r.region,
+            comciganCode: r.code,
+            eduCode: neis?.eduCode ?? '',
+            address: neis?.address ?? '',
+            schoolType: neis?.schoolType ?? ''
+          }
+        })
       } catch {
         return []
       }
