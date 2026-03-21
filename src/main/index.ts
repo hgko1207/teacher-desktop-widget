@@ -454,10 +454,16 @@ function registerIpcHandlers(): void {
     async (_event, schoolName: string): Promise<ComciganSchoolResult[]> => {
       try {
         // 1. 컴시간 검색 (시간표용)
-        const Timetable = require(join(__dirname, '../../node_modules/comcigan-parser'))
+        console.log('[search-school] searching for:', schoolName)
+        console.log('[search-school] appPath:', app.getAppPath())
+        const comciganModulePath = join(app.getAppPath(), 'node_modules', 'comcigan-parser')
+        const Timetable = require(comciganModulePath)
+        console.log('[search-school] comcigan loaded')
         const timetable = new Timetable()
         await timetable.init()
+        console.log('[search-school] comcigan init done')
         const comciganResults: ComciganSearchItem[] = await timetable.search(schoolName)
+        console.log('[search-school] comcigan results:', comciganResults.length)
 
         // 2. 나이스 검색 (급식용 - KEY 없이)
         let neisMap: Record<string, { schoolCode: string; eduCode: string; address: string; schoolType: string }> = {}
@@ -492,7 +498,8 @@ function registerIpcHandlers(): void {
             schoolType: neis?.schoolType ?? ''
           }
         })
-      } catch {
+      } catch (err) {
+        console.error('[search-school] ERROR:', err)
         return []
       }
     }
@@ -503,7 +510,8 @@ function registerIpcHandlers(): void {
     'fetch-timetable-comcigan',
     async (_event, comciganCode: number, grade: number, classNum: number): Promise<ComciganTimetableItem[]> => {
       try {
-        const Timetable = require(join(__dirname, '../../node_modules/comcigan-parser'))
+        const comciganModulePath = join(app.getAppPath(), 'node_modules', 'comcigan-parser')
+        const Timetable = require(comciganModulePath)
         const timetable = new Timetable()
         await timetable.init({ maxGrade: 6 })
         timetable.setSchool(comciganCode)

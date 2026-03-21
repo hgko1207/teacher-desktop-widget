@@ -62,7 +62,8 @@
       "Bash(curl -s \"http://comci.kr:4082/36179?92748t%ED%95%99%EA%B5%90%EB%AA%85%EC%9D%84%20%EC%9E%85%EB%A0%A5%ED%95%98%EC%84%B8%EC%9A%94_\")",
       "Bash(node -e \"const T = require\\(''comcigan-parser''\\); const t = new T\\(\\); t.init\\(\\).then\\(\\(\\) => t.search\\(''정산''\\)\\).then\\(r => console.log\\(JSON.stringify\\(r, null, 2\\)\\)\\).catch\\(e => console.log\\(''ERROR:'', e.message\\)\\)\")",
       "Bash(curl -s \"https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=SAMPLE&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=3380078&MLSV_YMD=20260322\")",
-      "Bash(curl -s \"https://schoolmenuw.moe.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=3380078&MLSV_YMD=202603&Type=json\")"
+      "Bash(curl -s \"https://schoolmenuw.moe.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=3380078&MLSV_YMD=202603&Type=json\")",
+      "Bash(npx electron-vite:*)"
     ]
   }
 }
