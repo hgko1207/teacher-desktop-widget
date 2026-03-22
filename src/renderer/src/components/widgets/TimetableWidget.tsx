@@ -244,7 +244,7 @@ export function TimetableWidget(): ReactNode {
                   const isToday = dayIndex === d.idx
 
                   let cellStyle: React.CSSProperties = {
-                    height: '48px',
+                    aspectRatio: '1',
                     cursor: isEditing ? 'pointer' : 'default',
                     transition: 'all 0.2s ease'
                   }
@@ -299,7 +299,7 @@ export function TimetableWidget(): ReactNode {
                         <CellEditor
                           day={d.key}
                           period={pt.period}
-                          mode={timetableMode}
+                          mode={timetableMode === 'auto' ? 'subject' : timetableMode}
                           onSave={(e) => {
                             addEntry(e)
                             setEditCell(null)

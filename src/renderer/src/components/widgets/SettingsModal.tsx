@@ -410,10 +410,11 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
           className="w-full mt-1.5 px-3 py-2.5 text-sm"
           style={inputStyle(borderColor)}
           value={settings.timetableMode}
-          onChange={(e) => setSettings({ timetableMode: e.target.value as 'class' | 'subject' })}
+          onChange={(e) => setSettings({ timetableMode: e.target.value as 'class' | 'subject' | 'auto' })}
         >
           <option value="class">반 번호 입력 (중등 교과 교사)</option>
-          <option value="subject">과목 입력 (초등 담임 / 특수반)</option>
+          <option value="subject">과목 수동 입력 (초등 담임 / 특수반)</option>
+          <option value="auto">컴시간 자동 불러오기</option>
         </select>
       </div>
 

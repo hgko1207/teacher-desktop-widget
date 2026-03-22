@@ -175,7 +175,7 @@ export interface AppSettings {
   offWorkTime: string
   launchers: LauncherItem[]
   fontSize: 'small' | 'medium' | 'large'
-  timetableMode: 'class' | 'subject'  // class=반번호(중등교과), subject=과목(초등/특수)
+  timetableMode: 'class' | 'subject' | 'auto'  // class=반번호, subject=과목수동, auto=컴시간자동
 }
 
 // === IPC 채널 ===
