@@ -16,3 +16,5 @@
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
+
+::placeholder { color: #c0c0c0 !important; font-weight: 400 !important; }

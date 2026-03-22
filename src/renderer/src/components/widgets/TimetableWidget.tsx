@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useCallback } from 'react'
-import { List, MoreHorizontal, Download, Loader2 } from 'lucide-react'
+import { List, Download, Loader2, Pencil, RotateCcw } from 'lucide-react'
 import { useTimetableStore, getClassColor } from '../../stores/timetableStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
@@ -34,24 +34,32 @@ function CellEditor({
   day,
   period,
   mode,
+  initialValue,
   onSave,
+  onDelete,
   onCancel
 }: {
   day: DayOfWeek
   period: number
   mode: 'class' | 'subject'
+  initialValue: string
   onSave: (e: TimetableEntry) => void
+  onDelete: () => void
   onCancel: () => void
 }): ReactNode {
-  const [val, setVal] = useState('')
+  const [val, setVal] = useState(initialValue)
   const submit = (): void => {
-    if (!val.trim()) { onCancel(); return }
     const trimmed = val.trim()
+    if (!trimmed) {
+      // 빈 값 = 삭제
+      onDelete()
+      return
+    }
     onSave({
       day,
       period,
-      className: mode === 'class' ? trimmed : '',
-      subject: mode === 'subject' ? trimmed : '',
+      className: trimmed,
+      subject: trimmed,
       room: '',
       color: getClassColor(trimmed)
     })
@@ -59,9 +67,9 @@ function CellEditor({
   return (
     <input
       autoFocus
-      className="w-full h-full text-center text-sm font-semibold outline-none rounded-xl"
-      style={{ border: '2px solid #818cf8', background: '#fff' }}
-      placeholder={mode === 'class' ? '반 (예: 1-4)' : '과목 (예: 국어)'}
+      className="text-center font-semibold outline-none"
+      style={{ border: '2px solid #818cf8', background: '#fff', borderRadius: '8px', width: '90%', height: '70%', fontSize: '12px', color: '#333' }}
+      placeholder={mode === 'class' ? '예) 1-1' : '예) 국어'}
       value={val}
       onChange={(e) => setVal(e.target.value)}
       onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel() }}
@@ -153,7 +161,8 @@ export function TimetableWidget(): ReactNode {
           <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>주간 시간표</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {comciganCode > 0 && (
+          {/* 자동불러오기: auto 모드 + 학교 설정 시에만 */}
+          {timetableMode === 'auto' && comciganCode > 0 && (
             <button
               onClick={handleFetchTimetable}
               disabled={fetchingTimetable}
@@ -182,23 +191,56 @@ export function TimetableWidget(): ReactNode {
               {fetchingTimetable ? '불러오는 중...' : '자동불러오기'}
             </button>
           )}
+          {/* 초기화 버튼 (항목 있을 때만) */}
+          {entries.length > 0 && (
+            <button
+              onClick={() => { if (confirm('시간표를 모두 초기화할까요?')) setEntries([]) }}
+              style={{
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                background: '#fef2f2',
+                color: '#dc2626',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                transition: 'all 0.2s'
+              }}
+              title="시간표 전체 초기화"
+            >
+              <RotateCcw size={11} />
+              초기화
+            </button>
+          )}
+          {/* 수기 수정 토글 */}
           <button
             onClick={() => setEditing(!isEditing)}
-            className="px-3 py-1 rounded-xl text-xs font-semibold transition-all"
-            style={
-              isEditing
-                ? { background: theme.accent, color: '#fff' }
-                : { color: '#999' }
-            }
+            style={{
+              padding: '4px 10px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontWeight: 600,
+              background: isEditing ? theme.accent : '#f3f4f6',
+              color: isEditing ? '#fff' : '#666',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+              transition: 'all 0.2s'
+            }}
           >
-            {isEditing ? '완료' : <MoreHorizontal size={16} />}
+            {isEditing ? '✓ 완료' : <><Pencil size={11} /> 수기 수정</>}
           </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto">
         {/* CSS Grid 기반 시간표 (정사각형 셀) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '40px repeat(5, 1fr)', gap: '5px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '40px repeat(5, 80px)', gap: '5px', justifyContent: 'center' }}>
           {/* 헤더 행 */}
           <div />
           {DAYS.map((d) => {
@@ -261,8 +303,8 @@ export function TimetableWidget(): ReactNode {
                     style={cellStyle}
                     onClick={() => {
                       if (!isEditing) return
-                      if (entry) removeEntry(d.key, pt.period)
-                      else setEditCell({ day: d.key, period: pt.period })
+                      // 빈 셀이든 수업 있는 셀이든 클릭하면 편집 모드
+                      setEditCell({ day: d.key, period: pt.period })
                     }}
                   >
                     {editing ? (
@@ -270,16 +312,16 @@ export function TimetableWidget(): ReactNode {
                         day={d.key}
                         period={pt.period}
                         mode={timetableMode === 'auto' ? 'subject' : timetableMode}
+                        initialValue={entry ? (entry.className || entry.subject) : ''}
                         onSave={(e) => { addEntry(e); setEditCell(null) }}
+                        onDelete={() => { removeEntry(d.key, pt.period); setEditCell(null) }}
                         onCancel={() => setEditCell(null)}
                       />
                     ) : entry ? (
                       <span
                         style={{ fontSize: '13px', fontWeight: 700, color: isToday ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
                       >
-                        {timetableMode === 'subject'
-                          ? (entry.subject || entry.className)
-                          : (entry.subject ? `${entry.subject} ` : '') + entry.className}
+                        {entry.className || entry.subject}
                       </span>
                       ) : null}
                   </div>
