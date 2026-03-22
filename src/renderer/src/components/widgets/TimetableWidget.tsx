@@ -197,133 +197,97 @@ export function TimetableWidget(): ReactNode {
       </div>
 
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-separate" style={{ borderSpacing: '5px' }}>
-          <thead>
-            <tr>
-              <th style={{ width: '48px' }} />
+        {/* CSS Grid 기반 시간표 (정사각형 셀) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '40px repeat(5, 1fr)', gap: '5px' }}>
+          {/* 헤더 행 */}
+          <div />
+          {DAYS.map((d) => {
+            const isToday = dayIndex === d.idx
+            return (
+              <div
+                key={d.key}
+                className="text-center py-2 rounded-xl"
+                style={
+                  isToday
+                    ? { background: '#1f2937', color: '#ffffff', fontSize: '13px', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }
+                    : { color: '#999', fontSize: '13px', fontWeight: 700 }
+                }
+              >
+                {d.label}
+              </div>
+            )
+          })}
+
+          {/* 교시 행 */}
+          {periodTimes.map((pt) => (
+            <div key={pt.period} style={{ display: 'contents' }}>
+              <div className="flex flex-col items-center justify-center" style={{ color: '#999', lineHeight: '1.2' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>{pt.period}</div>
+                <div style={{ color: '#ccc', fontSize: '10px' }}>{pt.startTime}</div>
+              </div>
               {DAYS.map((d) => {
+                const entry = get(d.key, pt.period)
+                const isCur = dayIndex === d.idx && currentPeriod === pt.period
+                const past = isPast(d.idx, pt.period)
+                const editing = editCell?.day === d.key && editCell?.period === pt.period
                 const isToday = dayIndex === d.idx
+
+                let cellStyle: React.CSSProperties = {
+                  aspectRatio: '1',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: isEditing ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease'
+                }
+
+                if (isToday) {
+                  cellStyle = { ...cellStyle, background: '#1e293b', color: '#ffffff' }
+                  if (isCur && entry) {
+                    cellStyle = { ...cellStyle, background: theme.accent, transform: 'scale(1.05)', boxShadow: '0 8px 20px rgba(0,0,0,0.15)', outline: '3px solid white' }
+                  }
+                } else if (past) {
+                  cellStyle = { ...cellStyle, background: 'rgba(229,231,235,0.5)', color: 'rgba(156,163,175,0.6)' }
+                } else if (entry) {
+                  cellStyle = { ...cellStyle, background: entry.color }
+                } else {
+                  cellStyle = { ...cellStyle, background: 'rgba(243,244,246,0.5)' }
+                }
+
                 return (
-                  <th
-                    key={d.key}
-                    className="text-center py-2 rounded-xl"
-                    style={
-                      isToday
-                        ? {
-                            background: '#1f2937',
-                            color: '#ffffff',
-                            fontSize: '13px',
-                            fontWeight: 700,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                          }
-                        : { color: '#999', fontSize: '13px', fontWeight: 700 }
-                    }
+                  <div
+                    key={`${d.key}-${pt.period}`}
+                    style={cellStyle}
+                    onClick={() => {
+                      if (!isEditing) return
+                      if (entry) removeEntry(d.key, pt.period)
+                      else setEditCell({ day: d.key, period: pt.period })
+                    }}
                   >
-                    {d.label}
-                  </th>
+                    {editing ? (
+                      <CellEditor
+                        day={d.key}
+                        period={pt.period}
+                        mode={timetableMode === 'auto' ? 'subject' : timetableMode}
+                        onSave={(e) => { addEntry(e); setEditCell(null) }}
+                        onCancel={() => setEditCell(null)}
+                      />
+                    ) : entry ? (
+                      <span
+                        style={{ fontSize: '13px', fontWeight: 700, color: isToday ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
+                      >
+                        {timetableMode === 'subject'
+                          ? (entry.subject || entry.className)
+                          : (entry.subject ? `${entry.subject} ` : '') + entry.className}
+                      </span>
+                      ) : null}
+                  </div>
                 )
               })}
-            </tr>
-          </thead>
-          <tbody>
-            {periodTimes.map((pt) => (
-              <tr key={pt.period}>
-                <td
-                  className="text-center"
-                  style={{ color: '#999', lineHeight: '1.2' }}
-                >
-                  <div style={{ fontSize: '13px', fontWeight: 600 }}>{pt.period}</div>
-                  <div style={{ color: '#ccc', fontSize: '10px' }}>{pt.startTime}</div>
-                </td>
-                {DAYS.map((d) => {
-                  const entry = get(d.key, pt.period)
-                  const isCur = dayIndex === d.idx && currentPeriod === pt.period
-                  const past = isPast(d.idx, pt.period)
-                  const editing = editCell?.day === d.key && editCell?.period === pt.period
-
-                  const isToday = dayIndex === d.idx
-
-                  let cellStyle: React.CSSProperties = {
-                    aspectRatio: '1',
-                    minHeight: '52px',
-                    cursor: isEditing ? 'pointer' : 'default',
-                    transition: 'all 0.2s ease'
-                  }
-
-                  if (isToday) {
-                    // 오늘 컬럼 전체 = 다크 배경 (레퍼런스 스타일)
-                    cellStyle = {
-                      ...cellStyle,
-                      background: '#1e293b',
-                      color: '#ffffff'
-                    }
-                    if (isCur && entry) {
-                      // 현재 교시 + 수업 = 테마색 강조
-                      cellStyle = {
-                        ...cellStyle,
-                        background: theme.accent,
-                        transform: 'scale(1.05)',
-                        boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-                        outline: '3px solid white'
-                      }
-                    }
-                  } else if (past) {
-                    cellStyle = {
-                      ...cellStyle,
-                      background: 'rgba(229,231,235,0.5)',
-                      color: 'rgba(156,163,175,0.6)'
-                    }
-                  } else if (entry) {
-                    cellStyle = {
-                      ...cellStyle,
-                      background: entry.color
-                    }
-                  } else {
-                    cellStyle = {
-                      ...cellStyle,
-                      background: 'rgba(243,244,246,0.5)'
-                    }
-                  }
-
-                  return (
-                    <td
-                      key={`${d.key}-${pt.period}`}
-                      className="text-center rounded-xl"
-                      style={cellStyle}
-                      onClick={() => {
-                        if (!isEditing) return
-                        if (entry) removeEntry(d.key, pt.period)
-                        else setEditCell({ day: d.key, period: pt.period })
-                      }}
-                    >
-                      {editing ? (
-                        <CellEditor
-                          day={d.key}
-                          period={pt.period}
-                          mode={timetableMode === 'auto' ? 'subject' : timetableMode}
-                          onSave={(e) => {
-                            addEntry(e)
-                            setEditCell(null)
-                          }}
-                          onCancel={() => setEditCell(null)}
-                        />
-                      ) : entry ? (
-                        <span
-                          className="text-sm font-bold"
-                          style={{ color: isToday ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
-                        >
-                          {timetableMode === 'subject'
-                            ? (entry.subject || entry.className)
-                            : (entry.subject ? `${entry.subject} ` : '') + entry.className}
-                        </span>
-                      ) : null}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </div>
+          ))}
+        </div>
       </div>
 
       <style>{`
