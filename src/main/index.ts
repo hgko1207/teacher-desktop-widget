@@ -361,9 +361,12 @@ function registerIpcHandlers(): void {
     'fetch-meal',
     async (_event, schoolCode: string, region: string, date: string, apiKey: string, eduCodeDirect: string): Promise<ParsedMealResult | null> => {
       try {
+        console.log('[fetch-meal] schoolCode:', schoolCode, 'region:', region, 'date:', date, 'eduCodeDirect:', eduCodeDirect)
         const eduCode = eduCodeDirect || REGION_TO_EDU_CODE[region] || 'B10'
+        console.log('[fetch-meal] using eduCode:', eduCode)
         // KEY 없이도 나이스 API 작동 (KEY 파라미터 생략)
         let url = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&MLSV_YMD=${encodeURIComponent(date)}`
+        console.log('[fetch-meal] URL:', url)
         if (apiKey) {
           url += `&KEY=${encodeURIComponent(apiKey)}`
         }
