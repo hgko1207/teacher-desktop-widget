@@ -15,8 +15,8 @@ export function ClockWidget(): ReactNode {
   const pad = (n: number): string => String(n).padStart(2, '0')
 
   return (
-    <div className="h-full flex flex-col justify-center" style={{ ...CARD_STYLE, padding: '14px' }}>
-      <p className="text-[11px] font-medium" style={{ color: '#94a3b8' }}>현재 시각</p>
+    <div className="h-full flex flex-col" style={{ ...CARD_STYLE, padding: '14px' }}>
+      <p style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>현재 시각</p>
       <div className="flex items-baseline gap-1">
         <span style={{ fontSize: '36px', fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em' }}>
           {pad(hours)}:{pad(minutes)}

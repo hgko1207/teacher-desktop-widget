@@ -172,14 +172,14 @@ export function TimetableWidget(): ReactNode {
                 opacity: fetchingTimetable ? 0.6 : 1,
                 transition: 'all 0.2s'
               }}
-              title="컴시간에서 시간표 불러오기"
+              title="시간표 자동 불러오기"
             >
               {fetchingTimetable ? (
                 <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
               ) : (
                 <Download size={12} />
               )}
-              {fetchingTimetable ? '불러오는 중...' : '컴시간'}
+              {fetchingTimetable ? '불러오는 중...' : '자동불러오기'}
             </button>
           )}
           <button
@@ -245,6 +245,7 @@ export function TimetableWidget(): ReactNode {
 
                   let cellStyle: React.CSSProperties = {
                     aspectRatio: '1',
+                    minHeight: '52px',
                     cursor: isEditing ? 'pointer' : 'default',
                     transition: 'all 0.2s ease'
                   }

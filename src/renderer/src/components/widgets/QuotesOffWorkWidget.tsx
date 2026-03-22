@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Coffee, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useSettingsStore } from '../../stores/settingsStore'
 
@@ -48,11 +48,11 @@ export function QuotesOffWorkWidget(): ReactNode {
   }, [hours, minutes, offWorkTime])
 
   return (
-    <div className="h-full flex flex-col justify-center" style={{ ...CARD_STYLE, padding: '14px' }}>
+    <div className="h-full flex flex-col" style={{ ...CARD_STYLE, padding: '14px' }}>
       <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="flex items-center gap-1" style={{ fontSize: '11px', color: '#94a3b8' }}>
-            <Coffee size={12} /> 행복한 퇴근까지
+          <p style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+            행복한 퇴근까지
           </p>
           <div style={{ fontSize: '20px', fontWeight: 700, color: '#334155' }}>{offWorkText}</div>
         </div>

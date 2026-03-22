@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { Utensils, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { MealEditModal } from '../modals/MealEditModal'
 import type { MealData } from '../../types'
 
 function todayString(): string {
@@ -39,7 +38,6 @@ export function MealCard(): ReactNode {
   const eduCode = useSettingsStore((s) => s.settings.eduCode)
 
   const [meal, setMeal] = useState<MealData | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
   const [fetching, setFetching] = useState(false)
   const [mealDateOffset, setMealDateOffset] = useState(0)
 
@@ -95,8 +93,6 @@ export function MealCard(): ReactNode {
     }
   }, [meal, schoolCode, autoFetchMeal, mealDateOffset])
 
-  const handleClose = (): void => { setModalOpen(false); setTimeout(() => { loadData() }, 150) }
-
   const handleRefresh = (e: React.MouseEvent): void => {
     e.stopPropagation()
     fetchMealForDate(mealDateOffset)
@@ -132,13 +128,8 @@ export function MealCard(): ReactNode {
           border: '1px solid rgba(226,232,240,0.6)',
           borderRadius: '16px',
           boxShadow: '0 2px 10px -4px rgba(0,0,0,0.02)',
-          padding: '16px',
-          cursor: 'pointer',
-          transition: 'filter 0.15s'
+          padding: '16px'
         }}
-        onClick={() => setModalOpen(true)}
-        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.97)' }}
-        onMouseLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)' }}
       >
         {/* Header */}
         <div className="flex justify-between items-center shrink-0" style={{ marginBottom: '10px' }}>
@@ -185,21 +176,24 @@ export function MealCard(): ReactNode {
             style={{
               background: 'rgba(255,247,237,0.6)',
               border: 'none',
-              borderRadius: '6px',
-              width: '22px',
-              height: '22px',
+              borderRadius: '8px',
+              width: '32px',
+              height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer'
             }}
           >
-            <ChevronLeft size={12} style={{ color: '#666' }} />
+            <ChevronLeft size={18} style={{ color: '#666' }} />
           </button>
           <button
             onClick={handleMealToday}
-            className="text-[11px] font-semibold px-2 py-0.5 rounded-md"
             style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              padding: '6px 12px',
+              borderRadius: '8px',
               background: mealDateOffset === 0 ? '#fb923c' : 'rgba(255,247,237,0.6)',
               color: mealDateOffset === 0 ? '#fff' : '#666',
               border: 'none',
@@ -214,16 +208,16 @@ export function MealCard(): ReactNode {
             style={{
               background: 'rgba(255,247,237,0.6)',
               border: 'none',
-              borderRadius: '6px',
-              width: '22px',
-              height: '22px',
+              borderRadius: '8px',
+              width: '32px',
+              height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer'
             }}
           >
-            <ChevronRight size={12} style={{ color: '#666' }} />
+            <ChevronRight size={18} style={{ color: '#666' }} />
           </button>
         </div>
 
@@ -261,13 +255,11 @@ export function MealCard(): ReactNode {
           <div className="flex-1 flex flex-col items-center justify-center gap-1">
             <Utensils size={20} style={{ color: '#fed7aa' }} />
             <span className="text-xs font-medium" style={{ color: '#bbb' }}>
-              {schoolCode ? '급식 정보 없음' : '클릭하여 입력'}
+              급식 정보 없음
             </span>
           </div>
         )}
       </div>
-
-      <MealEditModal open={modalOpen} onClose={handleClose} />
 
       <style>{`
         @keyframes spin {

@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { BookOpen } from 'lucide-react'
+
 import { useCurrentPeriod } from '../../hooks/useCurrentPeriod'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useTimetableStore } from '../../stores/timetableStore'
@@ -51,9 +51,9 @@ export function CurrentClassWidget(): ReactNode {
   }
 
   return (
-    <div className="h-full flex flex-col justify-center" style={{ ...CARD_STYLE, padding: '14px' }}>
-      <p className="flex items-center gap-1" style={{ fontSize: '11px', color: '#94a3b8' }}>
-        <BookOpen size={12} /> 지금 이 시간
+    <div className="h-full flex flex-col" style={{ ...CARD_STYLE, padding: '14px' }}>
+      <p style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
+        지금 이 시간
       </p>
       <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#4f46e5', marginTop: '4px' }}>{title}</h3>
       {pt && !isBreak && currentPeriod !== null && (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
-import { CloudSun } from 'lucide-react'
+
 import { useSettingsStore } from '../../stores/settingsStore'
 import type { WeatherData } from '../../types'
 
@@ -34,12 +34,11 @@ export function WeatherWidget(): ReactNode {
   useEffect(() => { load(); const i = setInterval(load, CACHE_MS); return (): void => clearInterval(i) }, [load])
 
   return (
-    <div className="h-full flex flex-col" style={{ ...CARD, padding: '14px 16px' }}>
-      {/* 타이틀 (좌측 상단 고정) */}
-      <div className="flex items-center gap-1.5 shrink-0" style={{ marginBottom: '8px' }}>
-        <CloudSun size={14} style={{ color: '#60a5fa' }} />
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8' }}>오늘 날씨</span>
-        <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>{region}</span>
+    <div className="h-full flex flex-col" style={{ ...CARD, padding: '14px' }}>
+      {/* 타이틀 */}
+      <div className="flex items-center gap-1.5 shrink-0" style={{ marginBottom: '6px' }}>
+        <span style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8' }}>오늘 날씨</span>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>{region}</span>
       </div>
 
       {weather ? (
