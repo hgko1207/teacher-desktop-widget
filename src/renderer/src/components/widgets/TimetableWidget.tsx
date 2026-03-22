@@ -241,20 +241,30 @@ export function TimetableWidget(): ReactNode {
                   const past = isPast(d.idx, pt.period)
                   const editing = editCell?.day === d.key && editCell?.period === pt.period
 
+                  const isToday = dayIndex === d.idx
+
                   let cellStyle: React.CSSProperties = {
                     height: '48px',
                     cursor: isEditing ? 'pointer' : 'default',
                     transition: 'all 0.2s ease'
                   }
 
-                  if (isCur) {
+                  if (isToday) {
+                    // 오늘 컬럼 전체 = 다크 배경 (레퍼런스 스타일)
                     cellStyle = {
                       ...cellStyle,
-                      background: theme.accent,
-                      color: '#ffffff',
-                      transform: 'scale(1.05)',
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                      outline: '4px solid white'
+                      background: '#1e293b',
+                      color: '#ffffff'
+                    }
+                    if (isCur && entry) {
+                      // 현재 교시 + 수업 = 테마색 강조
+                      cellStyle = {
+                        ...cellStyle,
+                        background: theme.accent,
+                        transform: 'scale(1.05)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                        outline: '3px solid white'
+                      }
                     }
                   } else if (past) {
                     cellStyle = {
@@ -299,7 +309,7 @@ export function TimetableWidget(): ReactNode {
                       ) : entry ? (
                         <span
                           className="text-sm font-bold"
-                          style={{ color: isCur ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
+                          style={{ color: isToday ? '#ffffff' : past ? 'rgba(156,163,175,0.6)' : '#333' }}
                         >
                           {timetableMode === 'subject'
                             ? (entry.subject || entry.className)
