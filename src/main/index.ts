@@ -129,6 +129,7 @@ interface NeisRow {
   DDISH_NM: string
   CAL_INFO: string
   MLSV_YMD: string
+  MMEAL_SC_CODE: string // 1=조식, 2=중식, 3=석식
 }
 
 interface NeisHead {
@@ -388,7 +389,10 @@ function registerIpcHandlers(): void {
           return null
         }
 
-        const row = rows[0]
+        // 중식(2) 우선, 없으면 석식(3), 없으면 조식(1)
+        const row = rows.find((r: NeisRow) => r.MMEAL_SC_CODE === '2')
+          ?? rows.find((r: NeisRow) => r.MMEAL_SC_CODE === '3')
+          ?? rows[0]
         return {
           menu: parseMealMenu(row.DDISH_NM),
           calories: row.CAL_INFO || '',
