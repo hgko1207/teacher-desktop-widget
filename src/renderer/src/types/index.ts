@@ -176,6 +176,10 @@ export interface AppSettings {
   launchers: LauncherItem[]
   fontSize: 'small' | 'medium' | 'large'
   timetableMode: 'class' | 'subject' | 'auto'  // class=반번호, subject=과목수동, auto=컴시간자동
+  airApiKey: string
+  notificationsEnabled: boolean
+  notifyMinutesBefore: number
+  startMinimized: boolean
 }
 
 // === IPC 채널 ===
@@ -236,6 +240,31 @@ export interface PartitionItem {
   addedAt: string
 }
 
+// === 학사 일정 ===
+export interface ScheduleEvent {
+  date: string      // "20260324"
+  eventName: string // "학부모 상담주간"
+  isHoliday: boolean
+}
+
+// === 메모 (핸드폰 스타일) ===
+export interface MemoItem {
+  id: string
+  title: string
+  content: string
+  updatedAt: string
+  createdAt: string
+}
+
+// === 미세먼지 ===
+export interface DustData {
+  pm10: number
+  pm25: number
+  pm10Grade: string
+  pm25Grade: string
+  fetchedAt: number
+}
+
 // === electron-store 데이터 ===
 export interface StoreSchema {
   settings: AppSettings
@@ -252,4 +281,7 @@ export interface StoreSchema {
   partitionCategories: PartitionCategory[]
   partitionItems: PartitionItem[]
   documentNumbers: DocumentNumber[]
+  memos: MemoItem[]
+  scheduleCache: { events: ScheduleEvent[]; fetchedAt: number } | null
+  dustCache: DustData | null
 }

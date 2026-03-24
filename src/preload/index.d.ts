@@ -44,6 +44,19 @@ interface TimetableApiResult {
   subject: string
 }
 
+interface ScheduleEvent {
+  date: string
+  eventName: string
+  isHoliday: boolean
+}
+
+interface DustResult {
+  pm10: number
+  pm25: number
+  pm10Grade: string
+  pm25Grade: string
+}
+
 interface WidgetApi {
   toggleAlwaysOnTop: () => Promise<boolean>
   getAlwaysOnTop: () => Promise<boolean>
@@ -64,6 +77,8 @@ interface WidgetApi {
   selectFiles: () => Promise<string[]>
   selectFolder: () => Promise<string[]>
   getPathInfo: (filePath: string) => Promise<PathInfo>
+  fetchSchedule: (schoolCode: string, eduCode: string, year: number, month: number) => Promise<ScheduleEvent[]>
+  fetchDust: (airApiKey: string, region: string) => Promise<DustResult | null>
 }
 
 declare global {

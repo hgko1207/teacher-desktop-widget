@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net, dialog, Notification } from 'electron'
 import { statSync } from 'fs'
 import { join } from 'path'
 import { initStore, loadStore, saveStore } from './store'
@@ -110,6 +110,49 @@ interface NeisTimetableRowData {
   row: NeisTimetableRow[]
 }
 
+// === 학사 일정 API 응답 ===
+interface ScheduleEventResult {
+  date: string
+  eventName: string
+  isHoliday: boolean
+}
+
+interface NeisScheduleRow {
+  AA_YMD: string
+  EVENT_NM: string
+  SBTR_DD_SC_NM: string
+}
+
+interface NeisScheduleResponse {
+  SchoolSchedule?: [
+    { head: NeisHead[] },
+    { row: NeisScheduleRow[] }
+  ]
+}
+
+// === 미세먼지 API 응답 ===
+interface DustResult {
+  pm10: number
+  pm25: number
+  pm10Grade: string
+  pm25Grade: string
+}
+
+interface AirKoreaItem {
+  pm10Value: string
+  pm25Value: string
+  pm10Grade: string
+  pm25Grade: string
+}
+
+interface AirKoreaResponse {
+  response?: {
+    body?: {
+      items?: AirKoreaItem[]
+    }
+  }
+}
+
 function parseTimetableResponse(json: Record<string, unknown>, endpoint: string): NeisTimetableRow[] {
   const data = json[endpoint] as [NeisTimetableData, NeisTimetableRowData] | undefined
   if (data && Array.isArray(data) && data.length >= 2) {
@@ -212,6 +255,11 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
+    const settings = loadStore('settings') as { startMinimized?: boolean } | null
+    if (settings?.startMinimized) {
+      // Stay hidden in tray
+      return
+    }
     mainWindow?.show()
   })
 
@@ -535,6 +583,57 @@ function registerIpcHandlers(): void {
     }
   )
 
+  // === 학사 일정 API ===
+  ipcMain.handle(
+    'fetch-schedule',
+    async (_event, schoolCode: string, eduCode: string, year: number, month: number): Promise<ScheduleEventResult[]> => {
+      try {
+        const startDate = `${year}${String(month).padStart(2, '0')}01`
+        const lastDay = new Date(year, month, 0).getDate()
+        const endDate = `${year}${String(month).padStart(2, '0')}${String(lastDay).padStart(2, '0')}`
+        const url = `https://open.neis.go.kr/hub/SchoolSchedule?Type=json&ATPT_OFCDC_SC_CODE=${encodeURIComponent(eduCode)}&SD_SCHUL_CODE=${encodeURIComponent(schoolCode)}&AA_FROM_YMD=${startDate}&AA_TO_YMD=${endDate}`
+        const text = await fetchUrl(url)
+        const json = JSON.parse(text) as NeisScheduleResponse
+        if (!json.SchoolSchedule || json.SchoolSchedule.length < 2) {
+          return []
+        }
+        const rows = json.SchoolSchedule[1].row
+        return rows.map((r) => ({
+          date: r.AA_YMD,
+          eventName: r.EVENT_NM,
+          isHoliday: r.SBTR_DD_SC_NM !== '해당없음'
+        }))
+      } catch {
+        return []
+      }
+    }
+  )
+
+  // === 미세먼지 API ===
+  ipcMain.handle(
+    'fetch-dust',
+    async (_event, airApiKey: string, region: string): Promise<DustResult | null> => {
+      try {
+        if (!airApiKey) return null
+        const url = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?serviceKey=${encodeURIComponent(airApiKey)}&returnType=json&numOfRows=1&pageNo=1&sidoName=${encodeURIComponent(region)}&ver=1.0`
+        const text = await fetchUrl(url)
+        const json = JSON.parse(text) as AirKoreaResponse
+        const items = json.response?.body?.items
+        if (!items || items.length === 0) return null
+        const item = items[0]
+        const gradeMap: Record<string, string> = { '1': '좋음', '2': '보통', '3': '나쁨', '4': '매우나쁨' }
+        return {
+          pm10: parseInt(item.pm10Value, 10) || 0,
+          pm25: parseInt(item.pm25Value, 10) || 0,
+          pm10Grade: gradeMap[item.pm10Grade] ?? '보통',
+          pm25Grade: gradeMap[item.pm25Grade] ?? '보통'
+        }
+      } catch {
+        return null
+      }
+    }
+  )
+
   // === NEIS 시간표 API ===
   ipcMain.handle(
     'fetch-timetable',
@@ -604,6 +703,81 @@ function registerIpcHandlers(): void {
   )
 }
 
+// === 알림 시스템 ===
+interface PeriodTimeSetting {
+  period: number
+  startTime: string
+  endTime: string
+}
+
+interface NotificationSettings {
+  notificationsEnabled: boolean
+  notifyMinutesBefore: number
+  periodTimes: PeriodTimeSetting[]
+  offWorkTime: string
+}
+
+const notifiedKeys = new Set<string>()
+
+function checkNotifications(): void {
+  try {
+    const settings = loadStore('settings') as NotificationSettings | null
+    if (!settings || !settings.notificationsEnabled) return
+
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
+    const currentTotalMins = currentHour * 60 + currentMinute
+    const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`
+    const minutesBefore = settings.notifyMinutesBefore ?? 5
+
+    // Check period start times
+    const periodTimes = settings.periodTimes ?? []
+    for (const pt of periodTimes) {
+      const [h, m] = pt.startTime.split(':').map(Number)
+      const periodMins = h * 60 + m
+      const targetMins = periodMins - minutesBefore
+
+      if (currentTotalMins === targetMins) {
+        const key = `${todayKey}-period-${pt.period}`
+        if (!notifiedKeys.has(key)) {
+          notifiedKeys.add(key)
+          const notification = new Notification({
+            title: '교사 위젯',
+            body: `📚 ${pt.period}교시 수업이 곧 시작됩니다`,
+            icon: icon
+          })
+          notification.show()
+        }
+      }
+    }
+
+    // Check off-work time
+    const offWork = settings.offWorkTime ?? '16:30'
+    const [oh, om] = offWork.split(':').map(Number)
+    const offWorkMins = oh * 60 + om
+    if (currentTotalMins === offWorkMins) {
+      const key = `${todayKey}-offwork`
+      if (!notifiedKeys.has(key)) {
+        notifiedKeys.add(key)
+        const notification = new Notification({
+          title: '교사 위젯',
+          body: '🏠 퇴근 시간입니다!',
+          icon: icon
+        })
+        notification.show()
+      }
+    }
+
+    // Clean old keys once per day (keep set manageable)
+    if (notifiedKeys.size > 100) {
+      notifiedKeys.clear()
+    }
+  } catch {
+    // silently ignore notification errors
+  }
+}
+
 app.whenReady().then(() => {
   app.setAppUserModelId('com.teacher-widget')
 
@@ -611,6 +785,9 @@ app.whenReady().then(() => {
   registerIpcHandlers()
   createWindow()
   createTray()
+
+  // Start notification checker (every 60 seconds)
+  setInterval(checkNotifications, 60 * 1000)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

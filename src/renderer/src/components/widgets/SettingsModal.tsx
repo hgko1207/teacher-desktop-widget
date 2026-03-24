@@ -489,6 +489,78 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
         />
       </div>
 
+      {/* Air API Key */}
+      <div>
+        <label className="text-sm font-semibold" style={sectionLabel()}>에어코리아 API 키 (미세먼지, 선택사항)</label>
+        <input
+          type="text"
+          className="w-full mt-1.5 px-3 py-2.5 text-sm"
+          style={inputStyle(borderColor)}
+          placeholder="data.go.kr 에어코리아 API 키 입력..."
+          value={settings.airApiKey}
+          onChange={(e) => setSettings({ airApiKey: e.target.value })}
+        />
+        <p style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>
+          미입력 시 기본값(보통) 표시
+        </p>
+      </div>
+
+      {/* Notifications */}
+      <div>
+        <label className="text-sm font-semibold" style={sectionLabel()}>알림 설정</label>
+        <div className="mt-2 space-y-2">
+          <div
+            className="flex items-center justify-between py-2.5 px-3 rounded-xl"
+            style={{ background: settings.notificationsEnabled ? '#f9fafb' : '#fafafa' }}
+          >
+            <span className="text-sm font-medium" style={{ color: settings.notificationsEnabled ? '#333' : '#999' }}>
+              수업 시작 알림
+            </span>
+            <button onClick={() => setSettings({ notificationsEnabled: !settings.notificationsEnabled })}>
+              {settings.notificationsEnabled ? (
+                <ToggleRight size={28} style={{ color: theme.accent }} />
+              ) : (
+                <ToggleLeft size={28} style={{ color: '#d1d5db' }} />
+              )}
+            </button>
+          </div>
+          {settings.notificationsEnabled && (
+            <div className="flex items-center gap-2 px-3">
+              <span className="text-sm" style={{ color: '#555' }}>수업</span>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                className="w-16 px-2 py-1.5 text-sm text-center"
+                style={inputStyle(borderColor)}
+                value={settings.notifyMinutesBefore}
+                onChange={(e) => setSettings({ notifyMinutesBefore: Math.max(1, Math.min(30, Number(e.target.value))) })}
+              />
+              <span className="text-sm" style={{ color: '#555' }}>분 전 알림</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Start minimized */}
+      <div>
+        <div
+          className="flex items-center justify-between py-2.5 px-3 rounded-xl"
+          style={{ background: settings.startMinimized ? '#f9fafb' : '#fafafa' }}
+        >
+          <span className="text-sm font-medium" style={{ color: settings.startMinimized ? '#333' : '#999' }}>
+            시작 시 트레이로 최소화
+          </span>
+          <button onClick={() => setSettings({ startMinimized: !settings.startMinimized })}>
+            {settings.startMinimized ? (
+              <ToggleRight size={28} style={{ color: theme.accent }} />
+            ) : (
+              <ToggleLeft size={28} style={{ color: '#d1d5db' }} />
+            )}
+          </button>
+        </div>
+      </div>
+
       <style>{`
         @keyframes spin {
           from { transform: translateY(-50%) rotate(0deg); }

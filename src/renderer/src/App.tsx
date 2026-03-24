@@ -10,6 +10,7 @@ import { QuotesOffWorkWidget } from './components/widgets/QuotesOffWorkWidget'
 import { DdayCompact } from './components/widgets/DdayCompact'
 import { MealCard } from './components/widgets/MealCard'
 import { MemoWidget } from './components/widgets/MemoWidget'
+import { SchoolScheduleWidget } from './components/widgets/SchoolScheduleWidget'
 import { SmartToolsWidget } from './components/widgets/SmartToolsWidget'
 import { SettingsModal } from './components/widgets/SettingsModal'
 import { useSettingsStore } from './stores/settingsStore'
@@ -78,10 +79,11 @@ function App(): ReactNode {
           <div style={{ flex: '2 1 0', minWidth: 0 }} className="flex flex-col min-h-0 overflow-hidden">
             <div style={{ gap: '12px' }} className="flex flex-col flex-1 min-h-0">
               {visibleWidgets.smartTools && (
-                <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><SmartToolsWidget /></div>
+                <div style={{ flex: '3 1 0' }} className="min-h-0 overflow-hidden"><SmartToolsWidget /></div>
               )}
+              <div style={{ flex: '2 1 0' }} className="min-h-0 overflow-hidden"><SchoolScheduleWidget /></div>
               {visibleWidgets.lunchDday && (
-                <div style={{ flex: '1 1 0' }} className="min-h-0 overflow-hidden"><MealCard /></div>
+                <div style={{ flex: '3 1 0' }} className="min-h-0 overflow-hidden"><MealCard /></div>
               )}
             </div>
           </div>

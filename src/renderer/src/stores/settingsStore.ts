@@ -49,7 +49,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   offWorkTime: '16:30',
   launchers: DEFAULT_LAUNCHERS,
   fontSize: 'medium' as const,
-  timetableMode: 'class' as const
+  timetableMode: 'class' as const,
+  airApiKey: '',
+  notificationsEnabled: true,
+  notifyMinutesBefore: 5,
+  startMinimized: false
 }
 
 interface SettingsState {

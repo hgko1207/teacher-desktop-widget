@@ -11,6 +11,19 @@ interface PathInfo {
   isDirectory: boolean
 }
 
+interface ScheduleEvent {
+  date: string
+  eventName: string
+  isHoliday: boolean
+}
+
+interface DustResult {
+  pm10: number
+  pm25: number
+  pm10Grade: string
+  pm25Grade: string
+}
+
 interface WeatherResult {
   temp: number
   condition: string
@@ -71,7 +84,11 @@ const widgetApi = {
   showInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke('show-in-folder', filePath),
   selectFiles: (): Promise<string[]> => ipcRenderer.invoke('select-files'),
   selectFolder: (): Promise<string[]> => ipcRenderer.invoke('select-folder'),
-  getPathInfo: (filePath: string): Promise<PathInfo> => ipcRenderer.invoke('get-path-info', filePath)
+  getPathInfo: (filePath: string): Promise<PathInfo> => ipcRenderer.invoke('get-path-info', filePath),
+  fetchSchedule: (schoolCode: string, eduCode: string, year: number, month: number): Promise<ScheduleEvent[]> =>
+    ipcRenderer.invoke('fetch-schedule', schoolCode, eduCode, year, month),
+  fetchDust: (airApiKey: string, region: string): Promise<DustResult | null> =>
+    ipcRenderer.invoke('fetch-dust', airApiKey, region)
 }
 
 contextBridge.exposeInMainWorld('api', widgetApi)

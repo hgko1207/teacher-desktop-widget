@@ -54,6 +54,7 @@ const DEFAULTS: Record<string, unknown> = {
   ddays: [],
   meal: { date: '', menu: [], calories: '', source: 'manual' },
   memo: '',
+  memos: [],
   partitionCategories: [
     { id: 'cat-1', name: '운영계획', iconColor: '#6366f1', order: 0 },
     { id: 'cat-2', name: '진행중 업무', iconColor: '#3b82f6', order: 1 },
