@@ -74,7 +74,11 @@
       "Bash(curl -s \"https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=10&SCHUL_NM=%EC%A0%95%EC%82%B0%EC%A4%91%ED%95%99%EA%B5%90\")",
       "Bash(sed -i \"s/import { BookOpen } from ''lucide-react''//\" src/renderer/src/components/widgets/CurrentClassWidget.tsx)",
       "Bash(sed -i \"s/import { Coffee, Heart } from ''lucide-react''/import { Heart } from ''lucide-react''/\" src/renderer/src/components/widgets/QuotesOffWorkWidget.tsx)",
-      "Bash(sed -i \"s/import { CloudSun } from ''lucide-react''//\" src/renderer/src/components/widgets/WeatherWidget.tsx)"
+      "Bash(sed -i \"s/import { CloudSun } from ''lucide-react''//\" src/renderer/src/components/widgets/WeatherWidget.tsx)",
+      "Bash(node -e \"const e = require\\(''''electron''''\\); console.log\\(''''electron ok''''\\)\")",
+      "Bash(npx koffi:*)",
+      "Bash(npm list:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

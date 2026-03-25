@@ -79,6 +79,8 @@ interface WidgetApi {
   getPathInfo: (filePath: string) => Promise<PathInfo>
   fetchSchedule: (schoolCode: string, eduCode: string, year: number, month: number) => Promise<ScheduleEvent[]>
   fetchDust: (airApiKey: string, region: string) => Promise<DustResult | null>
+  toggleDesktopPin: (enable: boolean) => Promise<boolean>
+  getDesktopPin: () => Promise<boolean>
 }
 
 declare global {

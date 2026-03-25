@@ -7,6 +7,7 @@ import {
   fetchTimetable as comciganFetchTimetable
 } from './comcigan'
 import type { ComciganSearchResult, ComciganTimetableData } from './comcigan'
+import { pinToDesktop, unpinFromDesktop } from './windowPin'
 
 // === 교육청 코드 매핑 ===
 const REGION_TO_EDU_CODE: Record<string, string> = {
@@ -230,6 +231,31 @@ const icon = join(__dirname, '../../resources/icon.png')
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+let isPinned = false
+let pinInterval: ReturnType<typeof setInterval> | null = null
+
+function enableDesktopPin(win: BrowserWindow): void {
+  isPinned = true
+  const hwndBuffer = win.getNativeWindowHandle()
+  pinToDesktop(hwndBuffer)
+  if (pinInterval) clearInterval(pinInterval)
+  pinInterval = setInterval(() => {
+    if (!isPinned || !mainWindow) return
+    // 위젯에 포커스 없을 때만 re-pin (포커스 있을 땐 사용자가 위젯 조작 중)
+    if (!mainWindow.isFocused()) {
+      pinToDesktop(hwndBuffer)
+    }
+  }, 1000)
+  saveStore('desktopPin', true)
+}
+
+function disableDesktopPin(win: BrowserWindow): void {
+  isPinned = false
+  if (pinInterval) { clearInterval(pinInterval); pinInterval = null }
+  const hwndBuffer = win.getNativeWindowHandle()
+  unpinFromDesktop(hwndBuffer)
+  saveStore('desktopPin', false)
+}
 
 function createWindow(): void {
   const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize
@@ -338,6 +364,15 @@ function registerIpcHandlers(): void {
   ipcMain.handle('get-always-on-top', () => {
     return mainWindow?.isAlwaysOnTop() ?? false
   })
+
+  ipcMain.handle('toggle-desktop-pin', (_event, enable: boolean) => {
+    if (!mainWindow) return false
+    if (enable) enableDesktopPin(mainWindow)
+    else disableDesktopPin(mainWindow)
+    return enable
+  })
+
+  ipcMain.handle('get-desktop-pin', () => isPinned)
 
   ipcMain.handle('set-opacity', (_event, opacity: number) => {
     mainWindow?.setOpacity(Math.max(0.1, Math.min(1, opacity)))
@@ -789,9 +824,22 @@ app.whenReady().then(() => {
   // Start notification checker (every 60 seconds)
   setInterval(checkNotifications, 60 * 1000)
 
+  // 저장된 desktopPin 설정 복원
+  const savedPin = loadStore('desktopPin')
+  if (savedPin === true && mainWindow) {
+    // 창이 준비된 후 적용
+    mainWindow.once('ready-to-show', () => {
+      if (mainWindow) enableDesktopPin(mainWindow)
+    })
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+app.on('before-quit', () => {
+  if (isPinned && mainWindow) disableDesktopPin(mainWindow)
 })
 
 app.on('window-all-closed', () => {

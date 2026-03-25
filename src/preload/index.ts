@@ -88,7 +88,11 @@ const widgetApi = {
   fetchSchedule: (schoolCode: string, eduCode: string, year: number, month: number): Promise<ScheduleEvent[]> =>
     ipcRenderer.invoke('fetch-schedule', schoolCode, eduCode, year, month),
   fetchDust: (airApiKey: string, region: string): Promise<DustResult | null> =>
-    ipcRenderer.invoke('fetch-dust', airApiKey, region)
+    ipcRenderer.invoke('fetch-dust', airApiKey, region),
+  toggleDesktopPin: (enable: boolean): Promise<boolean> =>
+    ipcRenderer.invoke('toggle-desktop-pin', enable),
+  getDesktopPin: (): Promise<boolean> =>
+    ipcRenderer.invoke('get-desktop-pin')
 }
 
 contextBridge.exposeInMainWorld('api', widgetApi)

@@ -738,18 +738,182 @@ interface PartitionItem {
 | 5 | 12-5. 바탕화면 고정 | 보류 |
 | 6 | 12-6. 나이스 시간표 | 컴시간으로 충분 |
 
-### 11-3. 입력 모드 3가지 (설정에서 선택)
-- **반 번호 입력** (중등 교과): "1-4", "2-2" 등 학년-반 입력
-- **과목 자동 불러오기** (컴시간 연동): 버튼 클릭 → 자동 채움
-- **과목 수동 입력** (초등 담임/특수반): "국어", "수학" 직접 입력
+### ✅ 11-3. 입력 모드 3가지 (완료: 2026-03-21)
+- [x] **반 번호 입력** (중등 교과): "1-4", "2-2" 등 학년-반 입력
+- [x] **과목 자동 불러오기** (컴시간 연동): 버튼 클릭 → 자동 채움
+- [x] **과목 수동 입력** (초등 담임/특수반): "국어", "수학" 직접 입력
+- [x] `timetableMode: 'class' | 'subject'` settingsStore에 저장, TimetableWidget CellEditor 연동
 
-설정 드롭다운을 3개 옵션으로 변경:
+---
+
+*최종 업데이트: 2026-03-25*
+
+---
+
+## Phase 13: 바탕화면 고정 모드 (Desktop Pin Mode)
+
+### 목표
+위젯 창이 모든 앱 뒤에 고정되어 바탕화면처럼 동작.
+사용자가 다른 창을 클릭해도 위젯이 올라오지 않음.
+
+### 기술 선택: koffi + SetWindowPos (방법 A)
+
+**근거**:
+- `koffi`: node-ffi-napi의 현대적 대체제, Electron 28 + Node 18 호환, 네이티브 빌드 불필요
+- `SetWindowPos(hwnd, HWND_BOTTOM)`: Z-order를 맨 아래로 → 모든 창 뒤로
+- WorkerW 임베드(방법 B)는 자식창 제약 + 해상도 변경 시 깨짐 → 제외
+
+---
+
+### Step 1: koffi 설치 및 HWND 획득
+
+#### 13-1. koffi 패키지 추가
+```bash
+npm install koffi
 ```
-'class'     → 반 번호 입력 (중등 교과 교사)
-'subject'   → 과목 수동 입력 (초등 담임 / 특수반)
-'auto'      → 컴시간 자동 불러오기
+
+#### 13-2. Electron 창 HWND 얻기
+```typescript
+// src/main/index.ts
+import { getNativeWindowHandle } from 'electron'
+const hwnd = mainWindow.getNativeWindowHandle() // Buffer (8bytes on x64)
+const hwndBigInt = hwnd.readBigUInt64LE(0)
 ```
 
 ---
 
-*최종 업데이트: 2026-03-21*
+### Step 2: Windows API 래퍼 모듈
+
+#### 13-3. src/main/windowPin.ts 작성
+```typescript
+import koffi from 'koffi'
+
+const user32 = koffi.load('user32.dll')
+
+const SetWindowPos = user32.func(
+  'SetWindowPos',
+  'bool',
+  ['uint64', 'uint64', 'int', 'int', 'int', 'int', 'uint']
+)
+
+const SetWindowLongPtr = user32.func(
+  'SetWindowLongPtrW',
+  'intptr',
+  ['uint64', 'int', 'intptr']
+)
+
+const HWND_BOTTOM = BigInt(1)
+const HWND_NOTOPMOST = BigInt(-2)
+const SWP_NOMOVE = 0x0002
+const SWP_NOSIZE = 0x0001
+const SWP_NOACTIVATE = 0x0010
+const SWP_FLAGS = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+
+export function pinToDesktop(hwnd: bigint): void {
+  SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_FLAGS)
+}
+
+export function unpinFromDesktop(hwnd: bigint): void {
+  SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS)
+}
+```
+
+---
+
+### Step 3: Electron 메인 프로세스 연동
+
+#### 13-4. 고정 모드 토글 로직 (src/main/index.ts)
+```typescript
+let pinInterval: NodeJS.Timeout | null = null
+let isPinned = false
+
+function enableDesktopPin(win: BrowserWindow): void {
+  const hwnd = win.getNativeWindowHandle().readBigUInt64LE(0)
+  isPinned = true
+  // 즉시 아래로
+  pinToDesktop(hwnd)
+  // focus 이벤트마다 다시 아래로 (다른 창 클릭 후 돌아올 때 방지)
+  win.on('focus', () => { if (isPinned) pinToDesktop(hwnd) })
+  // 1초마다 Z-order 유지 (안전망)
+  pinInterval = setInterval(() => { if (isPinned) pinToDesktop(hwnd) }, 1000)
+}
+
+function disableDesktopPin(win: BrowserWindow): void {
+  isPinned = false
+  if (pinInterval) { clearInterval(pinInterval); pinInterval = null }
+  const hwnd = win.getNativeWindowHandle().readBigUInt64LE(0)
+  unpinFromDesktop(hwnd)
+}
+```
+
+#### 13-5. IPC 핸들러 추가
+```typescript
+ipcMain.handle('toggle-desktop-pin', async (_, enable: boolean) => {
+  if (enable) enableDesktopPin(mainWindow)
+  else disableDesktopPin(mainWindow)
+  return true
+})
+
+ipcMain.handle('get-desktop-pin', async () => isPinned)
+```
+
+---
+
+### Step 4: 렌더러 UI 연동
+
+#### 13-6. preload/index.ts에 API 추가
+```typescript
+toggleDesktopPin: (enable: boolean) => ipcRenderer.invoke('toggle-desktop-pin', enable),
+getDesktopPin: () => ipcRenderer.invoke('get-desktop-pin'),
+```
+
+#### 13-7. TitleBar에 핀 버튼 추가
+- 현재 TitleBar에 설정 버튼(⚙️), 최소화, 닫기 있음
+- 📌 핀 아이콘 버튼 추가 (Lucide `Pin` / `PinOff`)
+- 토글 시 배경색 변경 (활성: 인디고, 비활성: 기본)
+- 상태는 `window.api.getDesktopPin()`으로 초기 로드
+
+#### 13-8. 설정 저장
+- electron-store에 `desktopPin: boolean` 저장
+- 앱 시작 시 `desktopPin === true`면 자동으로 고정 모드 활성화
+
+---
+
+### Step 5: 엣지 케이스 처리
+
+#### 13-9. 주���사항
+- **UAC 다이얼로그**: 관리자 권한 창은 항상 위에 표시됨 (정상)
+- **전체화면 앱**: 전체화면 게임/영상 재생 시 위젯이 보이지 않음 (정상)
+- **다중 모니터**: 창이 있는 모니터에서만 동작 (정상)
+- **앱 종료 시**: disableDesktopPin 호출하여 Z-order 정리
+
+#### 13-10. 안전 해제
+```typescript
+app.on('before-quit', () => {
+  if (isPinned) disableDesktopPin(mainWindow)
+})
+```
+
+---
+
+### 구현 순서
+
+| 순서 | 항목 | 예상 시간 |
+|------|------|-----------|
+| 1 | koffi 설치 + windowPin.ts 작성 | 30분 |
+| 2 | main/index.ts IPC 핸들러 연동 | 20분 |
+| 3 | preload API 추가 + 타입 정의 | 10분 |
+| 4 | TitleBar 핀 버튼 UI | 20분 |
+| 5 | 시작 시 자동 고정 (설정 저장) | 10분 |
+| 6 | 테스트 및 엣지 케이스 확인 | 20분 |
+
+**총 예상**: 약 2시간
+
+### 리스크 평가
+
+| 리스크 | 가능성 | 대응 |
+|--------|--------|------|
+| koffi 빌드 오류 | 낮음 | koffi는 사전 빌드 바이너리 제공 |
+| Windows 업데이트 후 동작 변경 | 낮음 | SetWindowPos는 수십 년간 안정적 API |
+| 1초 interval 성능 영향 | 매우 낮음 | SetWindowPos는 O(1) 네이티브 호출 |
+| 포커스 이벤트 루프 | 낮음 | isPinned 플래그로 방어 |
