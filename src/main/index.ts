@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, screen, net, dialog, Notification } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { statSync } from 'fs'
 import { join } from 'path'
 import { initStore, loadStore, saveStore } from './store'
@@ -813,13 +814,48 @@ function checkNotifications(): void {
   }
 }
 
+function setupAutoUpdater(): void {
+  if (!app.isPackaged) return // 개발 중엔 업데이트 체크 안 함
+
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-available', (info) => {
+    const notification = new Notification({
+      title: 'Teacher\'s Desk 업데이트',
+      body: `새 버전 ${info.version}을 다운로드 중입니다...`,
+      icon
+    })
+    notification.show()
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    const notification = new Notification({
+      title: 'Teacher\'s Desk 업데이트 완료',
+      body: '앱을 재시작하면 새 버전이 적용됩니다.',
+      icon
+    })
+    notification.show()
+    // 트레이 메뉴에 재시작 항목 추가를 위해 렌더러에 알림
+    mainWindow?.webContents.send('update-downloaded')
+  })
+
+  autoUpdater.on('error', () => {
+    // 업데이트 오류는 무시 (네트워크 없는 환경 등)
+  })
+
+  // 앱 시작 5초 후 업데이트 확인
+  setTimeout(() => autoUpdater.checkForUpdates(), 5000)
+}
+
 app.whenReady().then(() => {
-  app.setAppUserModelId('com.teacher-widget')
+  app.setAppUserModelId('com.teacher-widget.app')
 
   initStore()
   registerIpcHandlers()
   createWindow()
   createTray()
+  setupAutoUpdater()
 
   // Start notification checker (every 60 seconds)
   setInterval(checkNotifications, 60 * 1000)

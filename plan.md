@@ -917,3 +917,70 @@ app.on('before-quit', () => {
 | Windows 업데이트 후 동작 변경 | 낮음 | SetWindowPos는 수십 년간 안정적 API |
 | 1초 interval 성능 영향 | 매우 낮음 | SetWindowPos는 O(1) 네이티브 호출 |
 | 포커스 이벤트 루프 | 낮음 | isPinned 플래그로 방어 |
+
+### ✅ 구현 완료 (2026-03-25)
+- [x] koffi 설치 + windowPin.ts (pinToDesktop / unpinFromDesktop)
+- [x] main/index.ts: enableDesktopPin / disableDesktopPin + IPC 핸들러
+- [x] preload: toggleDesktopPin / getDesktopPin API
+- [x] TitleBar: 📌 핀 버튼 (활성: 인디고, 비활성: 회색)
+- [x] 앱 시작 시 desktopPin 설정 자동 복원
+- [x] before-quit 시 Z-order 정리
+
+---
+
+## Phase 14: 배포 세팅 (GitHub Releases + 자동 업데이트)
+
+### 목표
+비개발자(교사)도 쉽게 설치할 수 있는 Windows 인스톨러 + 포터블 배포.
+GitHub Releases를 통한 버전 관리 + 앱 내 자동 업데이트.
+
+### ✅ 구현 완료 (2026-03-25)
+
+#### 14-1. electron-builder.yml 정비
+- [x] appId: `com.teacher-widget.app`
+- [x] productName: `Teacher's Desk`
+- [x] Win 타겟: **NSIS 인스톨러** + **포터블** (둘 다 x64)
+- [x] NSIS: 한국어 인터페이스, 설치 경로 변경 가능, 바탕화면 바로가기
+- [x] 포터블: `TeacherDesk-버전-Portable.exe`
+- [x] koffi 네이티브 모듈 asarUnpack 추가
+- [x] GitHub publisher 설정 (`owner: hgko1207, repo: teacher-desktop-widget`)
+
+#### 14-2. electron-updater 연동
+- [x] electron-updater 설치 (6.8.3)
+- [x] 앱 시작 5초 후 자동 업데이트 확인
+- [x] 업데이트 발견 시 백그라운드 자동 다운로드
+- [x] 다운로드 완료 시 Windows 알림 표시
+- [x] 앱 종료 시 자동 설치 (`autoInstallOnAppQuit: true`)
+- [x] 개발 환경에서는 비활성 (`app.isPackaged` 체크)
+
+#### 14-3. package.json 스크립트 추가
+- [x] `release:win`: `npm run build && electron-builder --win --publish always`
+
+### 배포 방법 (릴리즈 절차)
+
+```bash
+# 1. 버전 업 (package.json의 version 수정)
+# 예: "version": "0.1.0" → "0.2.0"
+
+# 2. 커밋 & 태그
+git add -A
+git commit -m "chore: bump version to 0.2.0"
+git tag v0.2.0
+git push && git push --tags
+
+# 3. GitHub Token 설정 (최초 1회)
+$env:GH_TOKEN = "ghp_xxxxxxxxxxxxxxxx"
+
+# 4. 빌드 + GitHub Releases 자동 업로드
+npm run release:win
+```
+
+**결과**: `dist/` 폴더에 아래 2개 파일 생성 + GitHub Releases에 자동 업로드
+- `TeacherDesk-0.2.0-Setup.exe` (인스톨러)
+- `TeacherDesk-0.2.0-Portable.exe` (포터블)
+
+### GitHub Token 발급 방법
+1. GitHub → Settings → Developer settings → Personal access tokens
+2. Generate new token (classic)
+3. 권한: `repo` 전체 체크
+4. 생성된 토큰을 `GH_TOKEN` 환경변수로 설정
