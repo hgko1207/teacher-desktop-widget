@@ -18,6 +18,8 @@ asarUnpack:
 win:
   executableName: teacher-desk
   icon: resources/icon.png
+  forceCodeSigning: false
+  signAndEditExecutable: false
   target:
     - target: nsis
       arch:

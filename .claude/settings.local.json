@@ -78,7 +78,11 @@
       "Bash(node -e \"const e = require\\(''''electron''''\\); console.log\\(''''electron ok''''\\)\")",
       "Bash(npx koffi:*)",
       "Bash(npm list:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(export CSC_IDENTITY_AUTO_DISCOVERY=false)",
+      "Bash(ls -la d:/project/2026/desktop-widget/dist/*.exe)",
+      "Bash(gh auth:*)",
+      "Bash(gh release:*)"
     ]
   }
 }

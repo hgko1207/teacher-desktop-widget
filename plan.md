@@ -703,21 +703,19 @@ interface PartitionItem {
 - **기술**: `setInterval`로 매 분마다 체크, 조건 맞으면 Notification 발송
 - **우선순위**: 🟢 보통
 
-### 12-5. 바탕화면 고정 모드
+### ✅ 12-5. 바탕화면 고정 모드 (완료: 2026-03-26)
+- [x] `koffi` 패키지로 Windows API `SetWindowPos(HWND_BOTTOM)` 직접 호출
+- [x] `windowPin.ts` 모듈: pinToDesktop / unpinFromDesktop
+- [x] 1초 interval로 유지 + 포커스 없을 때만 re-pin (위젯 조작 가능)
+- [x] TitleBar에 📌 고정 버튼 추가 (활성: 인디고, 비활성: 회색)
+- [x] 앱 시작 시 이전 설정 자동 복원, 종료 시 Z-order 정리
 
-**분석**:
-- Rainmeter 방식: Windows API `SetWindowPos(HWND_BOTTOM)` → Electron에서 직접 구현 어려움
-- `node-ffi` 또는 `koffi` 패키지로 Windows API 호출 가능하지만 복잡+불안정
-- Electron `alwaysOnTop: false` + 사용자가 수동으로 뒤로 보내기 = 현실적 대안
-
-**판단**:
-- **현재로는 구현 보류** (복잡도 높고, Windows 업데이트 시 깨질 위험)
-- 대신 **"항상 위에" 토글** (이미 구현됨)을 활용
-- 사용자가 원하면 향후 별도 Phase로 검토
-
-**대안 제공**:
-- 설정에 "시작 시 최소화" 옵션 → 트레이에서 필요할 때 꺼내 쓰기
-- **우선순위**: 🔵 낮음 (보류)
+### ✅ 배포 세팅 (완료: 2026-03-26)
+- [x] `electron-builder.yml` 설정 (NSIS 인스톨러 + 포터블)
+- [x] `electron-updater` 자동 업데이트 (GitHub Releases 기반)
+- [x] `gh release create v0.1.0` 첫 배포 완료
+- [x] 배포 파일: TeacherDesk-0.1.0-Setup.exe / TeacherDesk-0.1.0-Portable.exe
+- [x] 릴리즈 URL: https://github.com/hgko1207/teacher-desktop-widget/releases/tag/v0.1.0
 
 ### 12-6. 나이스 시간표 API (컴시간 보완)
 
