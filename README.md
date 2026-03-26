@@ -84,15 +84,51 @@ npm run dev
 ### 빌드
 
 ```bash
-# Windows
+# Windows (인스톨러 + 포터블)
 npm run build:win
-
-# macOS
-npm run build:mac
-
-# Linux
-npm run build:linux
 ```
+
+빌드 결과물은 `dist/` 폴더에 생성됩니다:
+- `TeacherDesk-{version}-Setup.exe` — NSIS 인스톨러
+- `TeacherDesk-{version}-Portable.exe` — 설치 없이 실행
+
+## 다운로드
+
+최신 버전은 [GitHub Releases](https://github.com/hgko1207/teacher-desktop-widget/releases)에서 다운로드할 수 있습니다.
+
+| 파일 | 설명 |
+|------|------|
+| **TeacherDesk-Setup.exe** | 설치 파일 (바탕화면 바로가기 생성, 제어판에서 제거 가능) |
+| **TeacherDesk-Portable.exe** | 설치 없이 바로 실행 (USB 등에 휴대 가능) |
+
+설치 후 앱을 실행하면 자동으로 최신 버전을 확인하고 업데이트 알림을 표시합니다.
+
+## 배포 방법 (개발자용)
+
+### 1. 버전 올리기
+
+`package.json`의 `version` 필드를 수정합니다:
+```json
+"version": "0.2.0"
+```
+
+### 2. 빌드
+
+```bash
+npm run build:win
+```
+
+### 3. GitHub Releases에 업로드
+
+```bash
+gh release create v0.2.0 \
+  "dist/TeacherDesk-0.2.0-Setup.exe" \
+  "dist/TeacherDesk-0.2.0-Portable.exe" \
+  --title "v0.2.0 - 업데이트 내용" \
+  --notes "변경사항 설명"
+```
+
+기존 사용자는 앱 실행 시 `electron-updater`가 자동으로 새 버전을 감지하고 업데이트 알림을 표시합니다.
 
 ## API 키 설정
 
@@ -120,6 +156,7 @@ src/
 ├── main/
 │   ├── index.ts          # Electron 메인 프로세스, IPC 핸들러
 │   ├── comcigan.ts       # 컴시간 시간표 API (직접 HTTP 구현)
+│   ├── windowPin.ts      # 바탕화면 고정 모드 (koffi + Windows API)
 │   └── store.ts          # electron-store 기본값
 ├── preload/
 │   ├── index.ts          # IPC 브릿지
