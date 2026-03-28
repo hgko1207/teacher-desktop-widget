@@ -82,7 +82,9 @@
       "Bash(export CSC_IDENTITY_AUTO_DISCOVERY=false)",
       "Bash(ls -la d:/project/2026/desktop-widget/dist/*.exe)",
       "Bash(gh auth:*)",
-      "Bash(gh release:*)"
+      "Bash(gh release:*)",
+      "Bash(find /d/project/2026/desktop-widget/src -type f -name *.vue -o -name *.ts -o -name *.js)",
+      "Bash(grep -n \"borderRadius\\\\|rounded-\" /d/project/2026/desktop-widget/src/renderer/src/components/widgets/*.tsx)"
     ]
   }
 }
