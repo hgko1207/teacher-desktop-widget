@@ -49,14 +49,15 @@ export function RandomPickerModal({ onClose }: RandomPickerModalProps): ReactNod
     setIsAnimating(true)
     setResult(null)
 
+    const PICKER_TOTAL_TICKS = 30
+    const PICKER_INTERVAL_MS = 70
     let count = 0
-    const totalTicks = 30
     animationRef.current = setInterval(() => {
       count++
       const randomIdx = Math.floor(Math.random() * available.length)
       setCurrentDisplay(available[randomIdx])
 
-      if (count >= totalTicks) {
+      if (count >= PICKER_TOTAL_TICKS) {
         if (animationRef.current) clearInterval(animationRef.current)
         const finalIdx = Math.floor(Math.random() * available.length)
         const picked = available[finalIdx]
@@ -68,7 +69,7 @@ export function RandomPickerModal({ onClose }: RandomPickerModalProps): ReactNod
           return [...prev, picked]
         })
       }
-    }, 70)
+    }, PICKER_INTERVAL_MS)
   }
 
   useEffect(() => {

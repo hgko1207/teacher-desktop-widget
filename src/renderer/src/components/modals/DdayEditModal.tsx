@@ -116,6 +116,7 @@ export function DdayEditModal({ open, onClose }: DdayEditModalProps): ReactNode 
             className="w-8 h-8 flex items-center justify-center rounded-full"
             style={{ background: '#f3f4f6' }}
             onClick={onClose}
+            title="닫기"
           >
             <X size={16} style={{ color: '#6b7280' }} />
           </button>
@@ -123,7 +124,9 @@ export function DdayEditModal({ open, onClose }: DdayEditModalProps): ReactNode 
 
         {/* Add new */}
         <div className="flex gap-2 mb-4">
+          <label htmlFor="dday-title" className="sr-only">D-Day 제목</label>
           <input
+            id="dday-title"
             type="text"
             placeholder="D-Day 제목"
             value={newTitle}
@@ -131,7 +134,9 @@ export function DdayEditModal({ open, onClose }: DdayEditModalProps): ReactNode 
             className="flex-1 px-3 py-2 rounded-lg text-sm"
             style={{ border: `1px solid ${theme.border}`, outline: 'none' }}
           />
+          <label htmlFor="dday-date" className="sr-only">날짜</label>
           <input
+            id="dday-date"
             type="date"
             value={newDate}
             onChange={(e) => setNewDate(e.target.value)}

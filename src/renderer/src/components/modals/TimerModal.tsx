@@ -133,6 +133,7 @@ export function TimerModal({ onClose, initialMinutes }: TimerModalProps): ReactN
             className="w-8 h-8 flex items-center justify-center rounded-full"
             style={{ background: '#f3f4f6' }}
             onClick={onClose}
+            title="닫기"
           >
             <X size={16} style={{ color: '#6b7280' }} />
           </button>
@@ -228,6 +229,7 @@ export function TimerModal({ onClose, initialMinutes }: TimerModalProps): ReactN
             }}
             onClick={toggleRunning}
             disabled={totalSeconds === 0}
+            title={isRunning ? '일시정지' : '타이머 시작'}
           >
             {isRunning ? <Pause size={20} /> : <Play size={20} />}
           </button>
@@ -235,6 +237,7 @@ export function TimerModal({ onClose, initialMinutes }: TimerModalProps): ReactN
             className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
             style={{ background: '#f3f4f6', color: '#6b7280' }}
             onClick={reset}
+            title="초기화"
           >
             <RotateCcw size={18} />
           </button>

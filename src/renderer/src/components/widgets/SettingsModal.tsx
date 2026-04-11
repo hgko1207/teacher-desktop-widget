@@ -268,7 +268,10 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
                 <span className="text-sm font-medium" style={{ color: enabled ? '#333' : '#999' }}>
                   {WIDGET_LABELS[key]}
                 </span>
-                <button onClick={() => toggleWidget(key)}>
+                <button
+                  onClick={() => toggleWidget(key)}
+                  title={`${WIDGET_LABELS[key]} ${enabled ? '끄기' : '켜기'}`}
+                >
                   {enabled ? (
                     <ToggleRight size={28} style={{ color: theme.accent }} />
                   ) : (
@@ -516,7 +519,10 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
             <span className="text-sm font-medium" style={{ color: settings.notificationsEnabled ? '#333' : '#999' }}>
               수업 시작 알림
             </span>
-            <button onClick={() => setSettings({ notificationsEnabled: !settings.notificationsEnabled })}>
+            <button
+              onClick={() => setSettings({ notificationsEnabled: !settings.notificationsEnabled })}
+              title={`수업 시작 알림 ${settings.notificationsEnabled ? '끄기' : '켜기'}`}
+            >
               {settings.notificationsEnabled ? (
                 <ToggleRight size={28} style={{ color: theme.accent }} />
               ) : (
@@ -551,7 +557,10 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
           <span className="text-sm font-medium" style={{ color: settings.startMinimized ? '#333' : '#999' }}>
             시작 시 트레이로 최소화
           </span>
-          <button onClick={() => setSettings({ startMinimized: !settings.startMinimized })}>
+          <button
+            onClick={() => setSettings({ startMinimized: !settings.startMinimized })}
+            title={`시작 시 트레이로 최소화 ${settings.startMinimized ? '끄기' : '켜기'}`}
+          >
             {settings.startMinimized ? (
               <ToggleRight size={28} style={{ color: theme.accent }} />
             ) : (
@@ -592,10 +601,15 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
               className="flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: '#f9fafb' }}
             >
-              <span className="text-sm font-semibold w-14 shrink-0" style={{ color: '#555' }}>
+              <label
+                htmlFor={`period-start-${pt.period}`}
+                className="text-sm font-semibold w-14 shrink-0"
+                style={{ color: '#555' }}
+              >
                 {pt.period}교시
-              </span>
+              </label>
               <input
+                id={`period-start-${pt.period}`}
                 type="time"
                 className="flex-1 px-2 py-1.5 text-sm text-center"
                 style={inputStyle(borderColor)}
@@ -604,6 +618,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
               />
               <span className="text-sm" style={{ color: '#999' }}>~</span>
               <input
+                id={`period-end-${pt.period}`}
                 type="time"
                 className="flex-1 px-2 py-1.5 text-sm text-center"
                 style={inputStyle(borderColor)}
@@ -826,6 +841,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
             style={{ background: '#f3f4f6' }}
+            title="닫기"
           >
             <X size={16} style={{ color: '#666' }} />
           </button>

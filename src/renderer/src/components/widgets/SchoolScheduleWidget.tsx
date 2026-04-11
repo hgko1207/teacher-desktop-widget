@@ -28,7 +28,6 @@ export function SchoolScheduleWidget(): ReactNode {
   const todayStr = `${year}${String(month).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
 
   const load = useCallback(async (): Promise<void> => {
-    console.log('[schedule] schoolCode:', schoolCode, 'eduCode:', eduCode)
     if (!schoolCode || !eduCode) return
     try {
       // Check cache

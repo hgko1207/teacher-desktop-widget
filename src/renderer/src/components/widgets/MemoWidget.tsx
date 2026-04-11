@@ -201,7 +201,7 @@ export function MemoWidget(): ReactNode {
           onClick={handleCreate}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '26px', height: '26px', borderRadius: '8px',
+            width: '32px', height: '32px', borderRadius: '8px',
             background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
             border: 'none', cursor: 'pointer'
           }}

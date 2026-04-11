@@ -166,8 +166,8 @@ export function LunchDdayWidget(): ReactNode {
       <div className="h-full flex flex-col gap-2">
 
         {/* ===== D-Day 카드 ===== */}
-        <div
-          className="p-3 shrink-0"
+        <button
+          className="p-3 shrink-0 text-left"
           style={{
             background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
             borderRadius: '16px',
@@ -212,11 +212,13 @@ export function LunchDdayWidget(): ReactNode {
               })}
             </div>
           )}
-        </div>
+        </button>
 
         {/* ===== 급식 카드 ===== */}
         <div
-          className="flex-1 p-3 flex flex-col relative overflow-hidden min-h-0"
+          role="button"
+          tabIndex={0}
+          className="flex-1 p-3 flex flex-col relative overflow-hidden min-h-0 text-left"
           style={{
             background: `linear-gradient(145deg, ${theme.bg}, #ffffff)`,
             borderRadius: '16px',
@@ -225,6 +227,7 @@ export function LunchDdayWidget(): ReactNode {
             cursor: 'pointer'
           }}
           onClick={() => setMealModalOpen(true)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setMealModalOpen(true) }}
         >
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-2 shrink-0">
@@ -254,8 +257,8 @@ export function LunchDdayWidget(): ReactNode {
                     background: 'rgba(255,255,255,0.8)',
                     border: 'none',
                     borderRadius: '6px',
-                    width: '22px',
-                    height: '22px',
+                    width: '28px',
+                    height: '28px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -287,12 +290,13 @@ export function LunchDdayWidget(): ReactNode {
           <div className="flex items-center justify-center gap-2 mb-2 shrink-0">
             <button
               onClick={handleMealPrev}
+              title="이전 날짜"
               style={{
                 background: 'rgba(255,255,255,0.55)',
                 border: 'none',
                 borderRadius: '6px',
-                width: '22px',
-                height: '22px',
+                width: '28px',
+                height: '28px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -316,12 +320,13 @@ export function LunchDdayWidget(): ReactNode {
             </button>
             <button
               onClick={handleMealNext}
+              title="다음 날짜"
               style={{
                 background: 'rgba(255,255,255,0.55)',
                 border: 'none',
                 borderRadius: '6px',
-                width: '22px',
-                height: '22px',
+                width: '28px',
+                height: '28px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

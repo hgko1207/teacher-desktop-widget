@@ -111,8 +111,8 @@ function CategoryZone({ category, items, onShowAddMenu, onContextMenu }: Categor
           onClick={handleAddClick}
           className="flex items-center justify-center"
           style={{
-            width: '22px',
-            height: '22px',
+            width: '28px',
+            height: '28px',
             borderRadius: '6px',
             background: 'rgba(0,0,0,0.05)',
             border: 'none',

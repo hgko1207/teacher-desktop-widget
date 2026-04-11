@@ -1,6 +1,7 @@
 import { type ReactNode, useState, useEffect } from 'react'
 import { Settings, Pin, PinOff } from 'lucide-react'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { THEMES } from '../../config/themes'
 
 interface TitleBarProps {
   onOpenSettings: () => void
@@ -8,6 +9,8 @@ interface TitleBarProps {
 
 export function TitleBar({ onOpenSettings }: TitleBarProps): ReactNode {
   const launchers = useSettingsStore((s) => s.settings.launchers)
+  const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const theme = THEMES[themeKey]
   const [pinned, setPinned] = useState(false)
 
   useEffect(() => {
@@ -51,9 +54,9 @@ export function TitleBar({ onOpenSettings }: TitleBarProps): ReactNode {
         <button
           className="flex items-center gap-1.5 rounded-xl transition-all hover:scale-105"
           style={{
-            background: pinned ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.7)',
-            color: pinned ? '#6366f1' : '#94a3b8',
-            border: pinned ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(226,232,240,0.6)',
+            background: pinned ? theme.hover : 'rgba(255,255,255,0.7)',
+            color: pinned ? theme.primary : '#94a3b8',
+            border: pinned ? `1px solid ${theme.border}` : '1px solid rgba(226,232,240,0.6)',
             cursor: 'pointer',
             padding: '8px 12px',
             fontSize: '12px',

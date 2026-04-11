@@ -4,6 +4,7 @@ import { useCurrentPeriod } from '../../hooks/useCurrentPeriod'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useTimetableStore } from '../../stores/timetableStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { THEMES } from '../../config/themes'
 import type { DayOfWeek } from '../../types'
 
 const DAY_MAP: Record<number, DayOfWeek> = { 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri' }
@@ -26,6 +27,8 @@ export function CurrentClassWidget(): ReactNode {
   const { hours, minutes, dayIndex } = useCurrentTime()
   const entries = useTimetableStore((s) => s.entries)
   const periodTimes = useSettingsStore((s) => s.settings.periodTimes)
+  const themeKey = useSettingsStore((s) => s.settings.themeKey)
+  const theme = THEMES[themeKey]
 
   const dayKey = DAY_MAP[dayIndex]
   const entry =
@@ -55,14 +58,14 @@ export function CurrentClassWidget(): ReactNode {
       <p style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8', marginBottom: '6px' }}>
         지금 이 시간
       </p>
-      <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#4f46e5', marginTop: '4px' }}>{title}</h3>
+      <h3 style={{ fontSize: '14px', fontWeight: 700, color: theme.primary, marginTop: '4px' }}>{title}</h3>
       {pt && !isBreak && currentPeriod !== null && (
         <div className="w-full mt-2 rounded-full overflow-hidden" style={{ height: '6px', background: '#f1f5f9' }}>
-          <div style={{ width: `${progress}%`, height: '100%', background: '#6366f1', borderRadius: '9999px' }} />
+          <div style={{ width: `${progress}%`, height: '100%', background: theme.accent, borderRadius: '9999px' }} />
         </div>
       )}
       {minutesLeft > 0 && (
-        <p style={{ fontSize: '10px', color: '#818cf8', marginTop: '4px' }}>종료까지 {minutesLeft}분 남음</p>
+        <p style={{ fontSize: '10px', color: theme.accent, marginTop: '4px' }}>종료까지 {minutesLeft}분 남음</p>
       )}
     </div>
   )

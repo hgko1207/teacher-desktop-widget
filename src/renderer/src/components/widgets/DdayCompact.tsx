@@ -44,8 +44,8 @@ export function DdayCompact(): ReactNode {
 
   return (
     <>
-      <div
-        className="h-full"
+      <button
+        className="h-full w-full text-left"
         style={{
           background: 'rgba(255,255,255,0.8)',
           backdropFilter: 'blur(8px)',
@@ -92,7 +92,7 @@ export function DdayCompact(): ReactNode {
             })}
           </div>
         )}
-      </div>
+      </button>
 
       <DdayEditModal open={modalOpen} onClose={handleClose} />
     </>
