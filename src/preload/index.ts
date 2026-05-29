@@ -92,7 +92,9 @@ const widgetApi = {
   toggleDesktopPin: (enable: boolean): Promise<boolean> =>
     ipcRenderer.invoke('toggle-desktop-pin', enable),
   getDesktopPin: (): Promise<boolean> =>
-    ipcRenderer.invoke('get-desktop-pin')
+    ipcRenderer.invoke('get-desktop-pin'),
+  setAutoStart: (enable: boolean): Promise<boolean> =>
+    ipcRenderer.invoke('set-auto-start', enable)
 }
 
 contextBridge.exposeInMainWorld('api', widgetApi)

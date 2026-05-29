@@ -188,6 +188,7 @@ export type IpcChannel =
   | 'get-always-on-top'
   | 'set-opacity'
   | 'minimize-to-tray'
+  | 'set-auto-start'
   | 'load-store'
   | 'save-store'
 

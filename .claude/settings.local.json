@@ -85,7 +85,14 @@
       "Bash(gh release:*)",
       "Bash(find /d/project/2026/desktop-widget/src -type f -name *.vue -o -name *.ts -o -name *.js)",
       "Bash(grep -n \"borderRadius\\\\|rounded-\" /d/project/2026/desktop-widget/src/renderer/src/components/widgets/*.tsx)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(grep -c \"<input\" src/renderer/src/components/widgets/*.tsx)",
+      "Bash(grep -r \"useMemo\\\\|useCallback\" src/renderer/src/components/widgets/*.tsx)",
+      "Bash(grep -r \"useState\" src/renderer/src/components/widgets/*.tsx)",
+      "Bash(grep -r \"92px\\\\|74px\\\\|80px\\\\|52px\\\\|36px\" src/renderer/src/components/widgets/*.tsx)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
     ]
   }
 }

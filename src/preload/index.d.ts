@@ -81,6 +81,7 @@ interface WidgetApi {
   fetchDust: (airApiKey: string, region: string) => Promise<DustResult | null>
   toggleDesktopPin: (enable: boolean) => Promise<boolean>
   getDesktopPin: () => Promise<boolean>
+  setAutoStart: (enable: boolean) => Promise<boolean>
 }
 
 declare global {

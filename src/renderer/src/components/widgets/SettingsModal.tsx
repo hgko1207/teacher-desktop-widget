@@ -548,6 +548,32 @@ export function SettingsModal({ open, onClose }: SettingsModalProps): ReactNode 
         </div>
       </div>
 
+      {/* Auto start on boot */}
+      <div>
+        <div
+          className="flex items-center justify-between py-2.5 px-3 rounded-xl"
+          style={{ background: settings.autoStart ? '#f9fafb' : '#fafafa' }}
+        >
+          <span className="text-sm font-medium" style={{ color: settings.autoStart ? '#333' : '#999' }}>
+            윈도우 시작 시 자동 실행
+          </span>
+          <button
+            onClick={() => {
+              const next = !settings.autoStart
+              setSettings({ autoStart: next })
+              window.api.setAutoStart(next)
+            }}
+            title={`윈도우 시작 시 자동 실행 ${settings.autoStart ? '끄기' : '켜기'}`}
+          >
+            {settings.autoStart ? (
+              <ToggleRight size={28} style={{ color: theme.accent }} />
+            ) : (
+              <ToggleLeft size={28} style={{ color: '#d1d5db' }} />
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Start minimized */}
       <div>
         <div

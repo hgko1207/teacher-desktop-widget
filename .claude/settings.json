@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(office-hours)",
+      "Skill(office-hours:*)",
+      "Bash(awk '{print $5\"\\\\t\"$9}')",
+      "Bash(git mv *)",
+      "Edit(/.claude/skills/dev/**)",
+      "Edit(/.claude/skills/plan/**)",
+      "Edit(/.claude/skills/research/**)"
+    ]
+  }
+}

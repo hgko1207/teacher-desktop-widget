@@ -62,7 +62,7 @@ src/
 - 매직 넘버 대신 상수 사용
 
 ### 프로젝트 진행
-- 작업 완료 시 `plan.md` 해당 항목 완료로 표시
+- 작업 완료 시 `docs/plan.md` 해당 항목 완료로 표시
 - 에러 발생 시 즉시 수정 후 진행
 
 ### 커밋 & 푸시
@@ -81,6 +81,8 @@ npm run build        # 프로덕션 빌드 (typecheck 포함)
 npm run build:win    # Windows 인스톨러 (.exe)
 npm run release:win  # GitHub Releases 배포 (자동 업데이트)
 ```
+
+> 배포 전체 절차(버전 올리기·GH_TOKEN·자동 업데이트 동작)는 `docs/RELEASE.md` 참조.
 
 ---
 
@@ -131,9 +133,11 @@ renderer → preload(contextBridge) → main process
 | API | 용도 | 키 필요 |
 |-----|------|---------|
 | wttr.in | 날씨 | 불필요 |
-| NEIS Open API | 급식, 학사일정 | 필요 (`neisApiKey`) |
+| NEIS Open API | 급식, 학사일정 | 선택 (`neisApiKey`, 키 없이도 동작) |
 | 에어코리아 | 미세먼지 | 필요 (`airApiKey`) |
 | 컴시간 | 시간표 자동 로드 | 불필요 |
+
+> API 키 발급·입력 절차는 `docs/API-KEY.md` 참조.
 
 ---
 

@@ -375,6 +375,13 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('get-desktop-pin', () => isPinned)
 
+  ipcMain.handle('set-auto-start', (_event, enable: boolean) => {
+    // 개발 환경에서는 electron 실행 파일이 등록되므로 건너뜀
+    if (!app.isPackaged) return enable
+    app.setLoginItemSettings({ openAtLogin: enable })
+    return enable
+  })
+
   ipcMain.handle('set-opacity', (_event, opacity: number) => {
     mainWindow?.setOpacity(Math.max(0.1, Math.min(1, opacity)))
   })
@@ -854,6 +861,12 @@ app.whenReady().then(() => {
 
   // Start notification checker (every 60 seconds)
   setInterval(checkNotifications, 60 * 1000)
+
+  // 저장된 autoStart 설정을 OS 로그인 항목과 동기화
+  if (app.isPackaged) {
+    const savedSettings = loadStore('settings') as { autoStart?: boolean } | null
+    app.setLoginItemSettings({ openAtLogin: savedSettings?.autoStart === true })
+  }
 
   // 저장된 desktopPin 설정 복원
   const savedPin = loadStore('desktopPin')
