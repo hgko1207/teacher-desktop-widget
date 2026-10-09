@@ -1,10 +1,17 @@
 # 교사용 데스크탑 위젯 (Teacher's Desktop Widget)
 
-교사의 일상 업무를 위한 올인원 데스크탑 위젯 애플리케이션입니다. 시간표, 급식, 학사일정, 날씨, 미세먼지, 할일 관리 등 교사에게 필요한 모든 정보를 한 화면에서 확인할 수 있습니다.
+교사의 일상 업무를 위한 Windows 데스크탑 위젯 앱입니다. 시간표, 급식, 학사일정, 날씨, 미세먼지, 할 일을 한 화면에서 확인할 수 있습니다.
 
-## 주요 기능
+## 다운로드
 
-### 위젯 목록
+[GitHub Releases](https://github.com/hgko1207/teacher-desktop-widget/releases)에서 받으세요.
+
+- **TeacherDesk-Setup.exe** — 설치 파일 (바탕화면 바로가기 생성, 제어판에서 제거 가능)
+- **TeacherDesk-Portable.exe** — 설치 없이 바로 실행 (USB 등에 휴대 가능)
+
+새 버전이 나오면 앱이 알아서 확인하고 업데이트 알림을 띄웁니다.
+
+## 위젯
 
 | 위젯 | 설명 |
 |------|------|
@@ -21,154 +28,27 @@
 | **스마트 도구** | 타이머, 랜덤 뽑기, 미제출 관리, 학교 전화번호부, 공문 문서번호 |
 | **바탕화면 파티션** | 바탕화면 파일 폴더 정리 사이드바 |
 
-### 설정
+설정에서 위젯 표시/숨김, 색상 테마, 수업 시작·종료 시간, 즐겨찾기 링크를 바꿀 수 있습니다.
 
-- **테마 & 위젯**: 위젯 표시/숨김 선택, 색상 테마 변경
-- **학교정보**: 학교 검색 (컴시간 + NEIS 통합), 지역/교육청 코드 자동 설정
-- **시간설정**: 수업 시작/종료 시간 커스텀
-- **즐겨찾기**: 자주 사용하는 링크 관리
+## 처음 설정
 
-## 화면 레이아웃
+1. 설정(⚙️) → **학교정보**에서 학교명을 검색해 고르면 교육청 코드가 자동으로 들어갑니다(컴시간 + NEIS 통합 검색).
+2. 미세먼지를 보려면 에어코리아(data.go.kr) API 키를 넣으세요. 날씨·시간표·급식·학사일정은 키 없이 동작합니다.
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    타이틀 바                          │
-├─────────────┬──────────────┬──────────────┬──────────┤
-│  시계       │  날씨/미세먼지 │  현재수업    │  명언    │
-│  (130px)    │  (130px)      │  (130px)     │ (130px)  │
-├─────────────┴──────────────┴──────────────┴──────────┤
-│  시간표 (3)  │  할일+D-Day+메모 (3)  │  스마트도구+  │
-│             │                       │  학사일정+급식 │
-│             │                       │  (2)          │
-│  (flex-1)   │  (flex-1)             │  (flex-1)     │
-└─────────────┴───────────────────────┴────────────────┘
-  [사이드바: 바탕화면 파티션]
-```
+키 발급과 입력 방법: [docs/API-KEY.md](docs/API-KEY.md)
 
-## 기술 스택
-
-- **Framework**: Electron 28 + React 19 + TypeScript 5
-- **Build**: electron-vite + Vite 7
-- **Styling**: Tailwind CSS v4 (레이아웃) + Inline Styles (디자인)
-- **State Management**: Zustand 5 + electron-store (영속성)
-- **Icons**: Lucide React
-
-## 외부 API
-
-| API | 용도 | 키 필요 여부 |
-|-----|------|-------------|
-| [wttr.in](https://wttr.in) | 날씨 | 불필요 |
-| [에어코리아](https://www.airkorea.or.kr) | 미세먼지 | 필요 (공공데이터포털) |
-| [NEIS Open API](https://open.neis.go.kr) | 급식, 학사일정 | 필요 (NEIS) |
-| [컴시간 (Comcigan)](http://comci.kr) | 시간표 | 불필요 |
-
-## 시작하기
-
-### 요구사항
-
-- Node.js 18+
-- npm 9+
-
-### 설치
+## 개발
 
 ```bash
-npm install
+npm install         # Node.js 18+, npm 9+
+npm run dev         # 개발 실행
+npm run build:win   # 인스톨러 + 포터블 exe (dist/)
 ```
 
-### 개발 실행
+Electron 28 · React 19 · TypeScript 5 · electron-vite · Tailwind CSS v4 · Zustand 5 + electron-store
 
-```bash
-npm run dev
-```
-
-### 빌드
-
-```bash
-# Windows (인스톨러 + 포터블)
-npm run build:win
-```
-
-빌드 결과물은 `dist/` 폴더에 생성됩니다:
-- `TeacherDesk-{version}-Setup.exe` — NSIS 인스톨러
-- `TeacherDesk-{version}-Portable.exe` — 설치 없이 실행
-
-## 다운로드
-
-최신 버전은 [GitHub Releases](https://github.com/hgko1207/teacher-desktop-widget/releases)에서 다운로드할 수 있습니다.
-
-| 파일 | 설명 |
-|------|------|
-| **TeacherDesk-Setup.exe** | 설치 파일 (바탕화면 바로가기 생성, 제어판에서 제거 가능) |
-| **TeacherDesk-Portable.exe** | 설치 없이 바로 실행 (USB 등에 휴대 가능) |
-
-설치 후 앱을 실행하면 자동으로 최신 버전을 확인하고 업데이트 알림을 표시합니다.
-
-## 배포 방법 (개발자용)
-
-### 1. 버전 올리기
-
-`package.json`의 `version` 필드를 수정합니다:
-```json
-"version": "0.2.0"
-```
-
-### 2. 빌드
-
-```bash
-npm run build:win
-```
-
-### 3. GitHub Releases에 업로드
-
-```bash
-gh release create v0.2.0 \
-  "dist/TeacherDesk-0.2.0-Setup.exe" \
-  "dist/TeacherDesk-0.2.0-Portable.exe" \
-  --title "v0.2.0 - 업데이트 내용" \
-  --notes "변경사항 설명"
-```
-
-기존 사용자는 앱 실행 시 `electron-updater`가 자동으로 새 버전을 감지하고 업데이트 알림을 표시합니다.
-
-## API 키 설정
-
-앱 실행 후 우측 상단 설정(⚙️) 버튼에서 API 키를 입력하세요.
-
-### 에어코리아 API 키 발급
-1. [공공데이터포털](https://www.data.go.kr) 회원가입
-2. `한국환경공단_에어코리아_대기오염정보` API 신청
-3. 발급된 서비스키를 설정 → 학교정보 탭에 입력
-
-### NEIS API 키 발급
-1. [NEIS Open API](https://open.neis.go.kr) 회원가입
-2. API 키 발급
-3. 설정 → 학교정보 탭에 입력
-
-### 학교 설정
-1. 설정 → 학교정보 탭
-2. 학교명 검색 (컴시간 + NEIS 통합 검색)
-3. 학교 선택 시 교육청 코드 자동 설정
-
-## 개발 환경
-
-```
-src/
-├── main/
-│   ├── index.ts          # Electron 메인 프로세스, IPC 핸들러
-│   ├── comcigan.ts       # 컴시간 시간표 API (직접 HTTP 구현)
-│   ├── windowPin.ts      # 바탕화면 고정 모드 (koffi + Windows API)
-│   └── store.ts          # electron-store 기본값
-├── preload/
-│   ├── index.ts          # IPC 브릿지
-│   └── index.d.ts        # window.api 타입 정의
-└── renderer/
-    └── src/
-        ├── App.tsx        # 메인 레이아웃
-        ├── components/
-        │   └── widgets/   # 위젯 컴포넌트들
-        ├── stores/        # Zustand 스토어
-        └── types/         # TypeScript 타입 정의
-```
+- 새 버전 내보내기(자동 업데이트 포함): [docs/RELEASE.md](docs/RELEASE.md)
+- 화면 배치·외부 API·폴더 구조: [docs/development.md](docs/development.md)
 
 ## 라이선스
 
