@@ -2,6 +2,8 @@
 
 교사의 일상 업무를 위한 Windows 데스크탑 위젯 앱입니다. 시간표, 급식, 학사일정, 날씨, 미세먼지, 할 일을 한 화면에서 확인할 수 있습니다.
 
+![교사용 데스크탑 위젯 실행 화면](docs/screenshots/home.png)
+
 ## 다운로드
 
 [GitHub Releases](https://github.com/hgko1207/teacher-desktop-widget/releases)에서 받으세요.
